@@ -10,6 +10,33 @@ function TitleSection() {
     )
 }
 
+type Car = {
+    Name: string
+    Miles_per_Gallon: number
+    Cylinders: number
+    Displacement: number
+    Horsepower: number
+    Weight_in_lbs: number
+    Acceleration: number
+    Year: string
+    Origin: string
+}
+
+async function getData() {
+    const carsDataResponse = await fetch(
+        'https://storage.googleapis.com/tfjs-tutorials/carsData.json'
+    )
+    const carsData: Car[] = await carsDataResponse.json()
+    const cleaned = carsData
+        .map((car) => ({
+            mpg: car.Miles_per_Gallon,
+            horsepower: car.Horsepower,
+        }))
+        .filter((car) => car.mpg != null && car.horsepower != null)
+
+    return cleaned
+}
+
 export const App = () => {
     const [results, setResults] = useState('')
 
@@ -32,17 +59,21 @@ export const App = () => {
             )
 
         //Read the data
-        d3.csv(
-            'https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/2_TwoNum.csv'
-        ).then((data) => {
+        getData().then((data) => {
             // Add X axis
-            var x = d3.scaleLinear().domain([0, 4000]).range([0, width])
+            var x = d3.scaleLinear().domain([0, 250]).range([0, width])
             svg.append('g')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(d3.axisBottom(x))
+            // Add X axis label:
+            svg.append('text')
+                .attr('text-anchor', 'end')
+                .attr('x', width / 2)
+                .attr('y', height + margin.top + 20)
+                .text('Horse Power')
 
             // Add Y axis
-            var y = d3.scaleLinear().domain([0, 500000]).range([height, 0])
+            var y = d3.scaleLinear().domain([0, 50]).range([height, 0])
             svg.append('g').call(d3.axisLeft(y))
 
             // Add dots
@@ -51,14 +82,17 @@ export const App = () => {
                 .data(data)
                 .enter()
                 .append('circle')
-                .attr('cx', ({ GrLivArea }) =>
-                    x(GrLivArea ? Number.parseInt(GrLivArea) : 0)
-                )
-                .attr('cy', ({ SalePrice }) =>
-                    y(SalePrice ? Number.parseInt(SalePrice) : 0)
-                )
+                .attr('cx', ({ horsepower }) => x(horsepower))
+                .attr('cy', ({ mpg }) => y(mpg))
                 .attr('r', 1.5)
                 .style('fill', '#69b3a2')
+            // Y axis label:
+            svg.append('text')
+                .attr('text-anchor', 'end')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', -margin.left + 30)
+                .attr('x', -(margin.top + height) / 2)
+                .text('MPG')
         })
     }, [])
 
