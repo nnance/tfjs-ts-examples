@@ -20,6 +20,9 @@
   "author": "nick nance",
   "license": "ISC",
   "devDependencies": {
+    "@material/button": "^14.0.0",
+    "@material/typography": "^14.0.0",
+    "@parcel/transformer-sass": "^2.8.0",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.14",
     "@types/node": "^18.11.9",
