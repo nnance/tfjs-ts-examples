@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/compat'
-import * as d3 from 'd3'
+import { getData } from '../api/cars'
 import { Point2D, scatterPlot } from './charts'
 
 function TitleSection() {
@@ -11,36 +11,7 @@ function TitleSection() {
     )
 }
 
-type Car = {
-    Name: string
-    Miles_per_Gallon: number
-    Cylinders: number
-    Displacement: number
-    Horsepower: number
-    Weight_in_lbs: number
-    Acceleration: number
-    Year: string
-    Origin: string
-}
-
-async function getData() {
-    const carsDataResponse = await fetch(
-        'https://storage.googleapis.com/tfjs-tutorials/carsData.json'
-    )
-    const carsData: Car[] = await carsDataResponse.json()
-    const cleaned = carsData
-        .map((car) => ({
-            mpg: car.Miles_per_Gallon,
-            horsepower: car.Horsepower,
-        }))
-        .filter((car) => car.mpg != null && car.horsepower != null)
-
-    return cleaned
-}
-
 export const App = () => {
-    const [results, setResults] = useState('')
-
     useEffect(() => {
         getData().then((cars) => {
             const data = cars.map<Point2D>((car) => [car.horsepower, car.mpg])
