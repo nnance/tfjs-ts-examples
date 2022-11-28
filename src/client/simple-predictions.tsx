@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'preact/compat'
-import { getData } from '../api/cars'
+import { useEffect } from 'preact/compat'
+import { getPredictions } from '../server'
 import { Point2D, scatterPlot } from './charts'
 
 function TitleSection() {
@@ -11,13 +11,26 @@ function TitleSection() {
     )
 }
 
+type PredictionResults = ReturnType<typeof getPredictions>
+
 export const App = () => {
     useEffect(() => {
-        getData().then((cars) => {
-            const data = cars.map<Point2D>((car) => [car.horsepower, car.mpg])
+        async function getDataWithPredictions() {
+            const res = await fetch(
+                'http://localhost:8080/simple-predictions/test'
+            )
+            const { originalPoints, predictedPoints } =
+                (await res.json()) as PredictionResults
+
+            const origTuples = originalPoints.map<Point2D>(({ x, y }) => [x, y])
+            const predTuples = predictedPoints.map<Point2D>(({ x, y }) => [
+                x,
+                y,
+            ])
+
             scatterPlot({
                 container: '#my_dataviz',
-                data,
+                data: [origTuples, predTuples],
                 options: {
                     xAxisDomain: [0, 250],
                     yAxisDomain: [0, 50],
@@ -25,7 +38,9 @@ export const App = () => {
                     yLabel: 'MPG',
                 },
             })
-        })
+        }
+
+        getDataWithPredictions()
     }, [])
 
     return (

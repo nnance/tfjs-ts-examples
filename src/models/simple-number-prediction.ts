@@ -85,6 +85,35 @@ export async function trainModel(
     })
 }
 
+export function testModel(
+    model: tf.LayersModel,
+    normalizationData: ReturnType<typeof convertToTensor>
+) {
+    const { inputMax, inputMin, labelMin, labelMax } = normalizationData
+
+    // Generate predictions for a uniform range of numbers between 0 and 1;
+    // We un-normalize the data by doing the inverse of the min-max scaling
+    // that we did earlier.
+    const [xs, preds] = tf.tidy(() => {
+        const xs = tf.linspace(0, 1, 100)
+        const preds = model.predict(xs.reshape([100, 1])) as tf.Tensor<tf.Rank>
+
+        const unNormXs = xs.mul(inputMax.sub(inputMin)).add(inputMin)
+
+        const unNormPreds = preds.mul(labelMax.sub(labelMin)).add(labelMin)
+
+        // Un-normalize the data
+        return [unNormXs.dataSync(), unNormPreds.dataSync()]
+    })
+
+    const predictedPoints = Array.from(xs).map((val, i) => ({
+        x: val,
+        y: preds[i],
+    }))
+
+    return predictedPoints
+}
+
 export function saveModel(model: tf.Sequential) {
     if (!fs.existsSync('./.artifacts')) {
         fs.mkdirSync('./.artifacts')
@@ -93,5 +122,5 @@ export function saveModel(model: tf.Sequential) {
 }
 
 export function loadModel() {
-    return tf.loadLayersModel(`file://.artifacts/${fileName}`)
+    return tf.loadLayersModel(`file://.artifacts/${fileName}/model.json`)
 }

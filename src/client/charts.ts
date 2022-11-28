@@ -4,7 +4,7 @@ export type Point2D = [number, number]
 
 type ScatterPlotProps = {
     container: HTMLElement | string
-    data: Point2D[]
+    data: Point2D[][]
     options: {
         xAxisDomain: [number, number]
         yAxisDomain: [number, number]
@@ -58,17 +58,6 @@ export function scatterPlot(props: ScatterPlotProps) {
     // Add Y axis
     const y = d3.scaleLinear().domain(options.yAxisDomain).range([height, 0])
     svg.append('g').call(d3.axisLeft(y))
-
-    // Add dots
-    svg.append('g')
-        .selectAll('dot')
-        .data(data)
-        .enter()
-        .append('circle')
-        .attr('cx', (point) => x(point[0]))
-        .attr('cy', (point) => y(point[1]))
-        .attr('r', 1.5)
-        .style('fill', '#69b3a2')
     // Y axis label:
     if (options.yLabel) {
         svg.append('text')
@@ -78,4 +67,19 @@ export function scatterPlot(props: ScatterPlotProps) {
             .attr('x', -(margin.top + height) / 2)
             .text(options?.yLabel)
     }
+
+    data.forEach((points, idx) => {
+        const fill =
+            idx == 0 ? 'green' : idx == 1 ? 'red' : idx == 1 ? 'blue' : 'orange'
+        // Add dots
+        svg.append('g')
+            .selectAll('dot')
+            .data(points)
+            .enter()
+            .append('circle')
+            .attr('cx', (point) => x(point[0]))
+            .attr('cy', (point) => y(point[1]))
+            .attr('r', 1.5)
+            .style('fill', fill)
+    })
 }
