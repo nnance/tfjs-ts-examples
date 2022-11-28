@@ -1,7 +1,7 @@
 import React from 'preact'
-import { StateUpdater, useState } from 'preact/compat'
+import { useState } from 'preact/compat'
 import { callAPI } from '../api/util'
-import * as EchoAPI from '../api/Echo'
+import { echoHandler, EchoProps, EchoURL } from '../server/api'
 
 function TitleSection() {
     return (
@@ -75,22 +75,22 @@ const Results = ({ results }: { results: string }) => (
     <label>Results: {results}</label>
 )
 
-const clickHandler = (setResults: StateUpdater<string>) => () => {
-    const data = { message: 'hello world' }
-    callAPI<EchoAPI.Request, EchoAPI.Response>(EchoAPI.URL, data).then((res) =>
-        setResults(res.echo)
-    )
-}
-
 export const App = () => {
     const [results, setResults] = useState('')
+
+    const clickHandler = () => () => {
+        const data = { message: 'hello world' }
+        callAPI<EchoProps, ReturnType<typeof echoHandler>>(EchoURL, data).then(
+            (res) => setResults(res.echo)
+        )
+    }
 
     return (
         <div class="example-container centered-container">
             <TitleSection />
             <DescriptionSection />
             <InstructionsSection />
-            <button onClick={clickHandler(setResults)}>Send</button>
+            <button onClick={clickHandler()}>Send</button>
             <p>
                 <Results results={results} />
             </p>

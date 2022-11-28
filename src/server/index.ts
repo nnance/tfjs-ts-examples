@@ -1,24 +1,19 @@
 import express from 'express'
 import cors from 'cors'
-import * as EchoAPI from '../api/Echo'
 import {
     convertToTensor,
     loadModel,
     testModel,
 } from '../models/simple-number-prediction'
-import { CarPerformance, getData } from '../api/cars'
+import { CarPerformance, getData } from './cars'
 import { LayersModel } from '@tensorflow/tfjs-layers'
+import { echoHandler, EchoURL } from './api'
 
 const app = express()
 app.use(cors({ origin: '*' }))
 app.use(express.json())
 
-const echoHandler = (req: EchoAPI.Request): EchoAPI.Response => {
-    const { message } = req
-    return { echo: message }
-}
-
-app.post(EchoAPI.URL, (req, res) => {
+app.post(EchoURL, (req, res) => {
     res.json(echoHandler(req.body))
 })
 

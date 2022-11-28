@@ -1,4 +1,4 @@
-import { getData } from '../api/cars'
+import { getData } from './cars'
 import {
     convertToTensor,
     createModel,
