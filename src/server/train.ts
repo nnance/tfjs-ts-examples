@@ -4,7 +4,7 @@ import {
     createModel,
     saveModel,
     trainModel,
-} from '../models/simple-number-prediction'
+} from '../models/predict-2d-data'
 
 async function train() {
     const model = createModel()

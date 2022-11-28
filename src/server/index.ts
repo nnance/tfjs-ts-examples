@@ -4,7 +4,7 @@ import {
     convertToTensor,
     loadModel,
     testModel,
-} from '../models/simple-number-prediction'
+} from '../models/predict-2d-data'
 import { CarPerformance, getData } from './cars'
 import { LayersModel } from '@tensorflow/tfjs-layers'
 import { echoHandler, EchoURL } from './api'
