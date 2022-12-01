@@ -1,21 +1,16 @@
-import { getData } from './cars'
 import {
-    convertToTensor,
     createModel,
     saveModel,
     trainModel,
-} from '../models/predict-2d-data'
+} from '../models/recognize-handwriting'
+import { MnistData } from '../client/MnistData'
 
 async function train() {
     const model = createModel()
-    const data = await getData()
-
-    // Convert the data to a form we can use for training.
-    const tensorData = convertToTensor(data)
-    const { inputs, labels } = tensorData
+    const data = new MnistData()
 
     // Train the model
-    await trainModel(model, inputs, labels)
+    await trainModel(model, data, 512, 5500, 1000)
     console.log('Done Training')
     const results = await saveModel(model)
     console.log(
