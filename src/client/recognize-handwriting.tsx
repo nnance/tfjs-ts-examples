@@ -1,3 +1,4 @@
+import React from 'preact'
 import { useEffect, useRef, useState } from 'preact/compat'
 import { MnistData } from './MnistData'
 import * as tf from '@tensorflow/tfjs'
@@ -6,9 +7,9 @@ import { createModel, trainModel } from '../models/recognize-handwriting'
 
 function TitleSection() {
     return (
-        <section class="title-area">
+        <section className="title-area">
             <h1>TensorFlow.js: Examples</h1>
-            <p class="subtitle">Handwritten digit recognition with CNNs</p>
+            <p className="subtitle">Handwritten digit recognition with CNNs</p>
         </section>
     )
 }
@@ -143,7 +144,7 @@ export const App = () => {
     const buttonText = !showData ? 'Load Data' : 'Train Model'
 
     return (
-        <div class="example-container centered-container">
+        <div className="example-container centered-container">
             <TitleSection />
             <div>
                 <button onClick={buttonHandler}>{buttonText}</button>

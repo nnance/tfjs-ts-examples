@@ -5,9 +5,9 @@ import { echoHandler, EchoProps, EchoURL } from '../server/api'
 
 function TitleSection() {
     return (
-        <section class="title-area">
+        <section className="title-area">
             <h1>TensorFlow.js: Examples</h1>
-            <p class="subtitle">
+            <p className="subtitle">
                 Train a model to balance a pole on a cart using reinforcement
                 learning.
             </p>
@@ -18,7 +18,7 @@ function TitleSection() {
 function DescriptionSection() {
     return (
         <section>
-            <p class="section-head">Description</p>
+            <p className="section-head">Description</p>
             <p>
                 This example illustrates how to use TensorFlow.js to perform
                 simple
@@ -34,9 +34,9 @@ function DescriptionSection() {
             </p>
 
             <p>
-                Through <span class="in-type">self play</span> the agent will
-                learn to balance the pole for as many
-                <span class="out-example">steps</span> as it can.
+                Through <span className="in-type">self play</span> the agent
+                will learn to balance the pole for as many
+                <span className="out-example">steps</span> as it can.
             </p>
         </section>
     )
@@ -45,27 +45,33 @@ function DescriptionSection() {
 function InstructionsSection() {
     return (
         <section>
-            <p class="section-head">Instructions</p>
+            <p className="section-head">Instructions</p>
             <p></p>
             <ul>
-                <li>Choose a hidden layer size and click "Create Model".</li>
-                <li>Select training parameters and then click "Train".</li>
+                <li>
+                    Choose a hidden layer size and click &quot;Create
+                    Model&quot;.
+                </li>
+                <li>
+                    Select training parameters and then click &quot;Train&quot;.
+                </li>
                 <li>
                     Note that while the model is training it periodically saves
                     a copy of itself to local browser storage, this mean you can
                     refresh the page and continue training from the last save
                     point. If at any point you want to start training from
-                    scratch, click "Delete stored Model".
+                    scratch, click &quot;Delete stored Model&quot;.
                 </li>
                 <li>
-                    Once the model has finished training you can click "Test" to
-                    see how many 'steps' the agent can balance the pole for. You
-                    can also click 'Stop' to pause the training after the
-                    current iteration ends if you want to test the model sooner.
+                    Once the model has finished training you can click
+                    &quot;Test&quot; to see how many &quot;steps&quot; the agent
+                    can balance the pole for. You can also click
+                    &quot;Stop&quot; to pause the training after the current
+                    iteration ends if you want to test the model sooner.
                 </li>
                 <li>
                     During training and testing a small simulation of the agent
-                    behaviour will be rendered.
+                    behavior will be rendered.
                 </li>
             </ul>
         </section>
@@ -86,7 +92,7 @@ export const App = () => {
     }
 
     return (
-        <div class="example-container centered-container">
+        <div className="example-container centered-container">
             <TitleSection />
             <DescriptionSection />
             <InstructionsSection />

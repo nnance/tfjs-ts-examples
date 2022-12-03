@@ -1,12 +1,13 @@
+import React from 'preact'
 import { useEffect } from 'preact/compat'
 import { getPredictions } from '../server'
 import { Point2D, scatterPlot } from './charts'
 
 function TitleSection() {
     return (
-        <section class="title-area">
+        <section className="title-area">
             <h1>TensorFlow.js: Examples</h1>
-            <p class="subtitle">Making Predictions from 2D Data</p>
+            <p className="subtitle">Making Predictions from 2D Data</p>
         </section>
     )
 }
@@ -44,7 +45,7 @@ export const App = () => {
     }, [])
 
     return (
-        <div class="example-container centered-container">
+        <div className="example-container centered-container">
             <TitleSection />
             <div id="my_dataviz"></div>
         </div>
