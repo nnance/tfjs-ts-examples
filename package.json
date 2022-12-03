@@ -56,10 +56,11 @@
   "dependencies": {
     "@tensorflow/tfjs": "^3.21.0",
     "@tensorflow/tfjs-node-gpu": "^3.21.0",
-    "@tensorflow/tfjs-vis": "^1.5.1",
     "cors": "^2.8.5",
     "d3": "^7.6.1",
     "express": "^4.18.2",
-    "preact": "^10.11.3"
+    "preact": "^10.11.3",
+    "vega": "^5.22.1",
+    "vega-embed": "^6.21.0"
   }
 }

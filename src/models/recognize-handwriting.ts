@@ -1,5 +1,4 @@
 import * as tf from '@tensorflow/tfjs'
-import * as tfvis from '@tensorflow/tfjs-vis'
 import * as fs from 'fs'
 import { MnistData } from '../client/MnistData'
 
@@ -76,16 +75,10 @@ export async function trainModel(
     data: MnistData,
     batchSize: number,
     trainDataSize: number,
-    testDataSize: number
+    testDataSize: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fitCallbacks?: any
 ) {
-    const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
-    const container = {
-        name: 'Model Training',
-        tab: 'Model',
-        styles: { height: '1000px' },
-    }
-    const fitCallbacks = tfvis.show.fitCallbacks(container, metrics)
-
     const [trainXs, trainYs] = tf.tidy(() => {
         const d = data.nextTrainBatch(trainDataSize)
         return [d.xs.reshape([trainDataSize, 28, 28, 1]), d.labels]

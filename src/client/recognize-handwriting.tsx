@@ -2,7 +2,7 @@ import React from 'preact'
 import { useEffect, useRef, useState } from 'preact/compat'
 import { MnistData } from './MnistData'
 import * as tf from '@tensorflow/tfjs'
-import * as tfvis from '@tensorflow/tfjs-vis'
+// import * as tfvis from '@tensorflow/tfjs-vis'
 import { createModel, trainModel } from '../models/recognize-handwriting'
 
 function TitleSection() {
@@ -16,14 +16,13 @@ function TitleSection() {
 
 async function showExamples(data: MnistData) {
     // Create a container in the visor
-    const surface = tfvis
-        .visor()
-        .surface({ name: 'Input Data Examples', tab: 'Input Data' })
+    // const surface = tfvis
+    //     .visor()
+    //     .surface({ name: 'Input Data Examples', tab: 'Input Data' })
 
     // Get the examples
     const examples = data.nextTestBatch(20)
     const numExamples = examples.xs.shape[0]
-    console.log(numExamples)
 
     // Create a canvas element to render each example
     for (let i = 0; i < numExamples; i++) {
@@ -38,24 +37,25 @@ async function showExamples(data: MnistData) {
         canvas.height = 28
         canvas.style.margin = '4px;'
         await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
-        surface.drawArea.appendChild(canvas)
+        document.body.appendChild(canvas)
+        // surface.drawArea.appendChild(canvas)
 
         imageTensor.dispose()
     }
 }
 
-const classNames = [
-    'Zero',
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six',
-    'Seven',
-    'Eight',
-    'Nine',
-]
+// const classNames = [
+//     'Zero',
+//     'One',
+//     'Two',
+//     'Three',
+//     'Four',
+//     'Five',
+//     'Six',
+//     'Seven',
+//     'Eight',
+//     'Nine',
+// ]
 
 function doPrediction(
     model: tf.Sequential,
@@ -80,21 +80,21 @@ function doPrediction(
 
 async function showAccuracy(model: tf.Sequential, data: MnistData) {
     const [preds, labels] = doPrediction(model, data)
-    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
+    // const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
     const container = { name: 'Accuracy', tab: 'Evaluation' }
-    tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
+    // tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
 
     labels.dispose()
 }
 
 async function showConfusion(model: tf.Sequential, data: MnistData) {
     const [preds, labels] = doPrediction(model, data)
-    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
+    // const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
     const container = { name: 'Confusion Matrix', tab: 'Evaluation' }
-    tfvis.render.confusionMatrix(container, {
-        values: confusionMatrix,
-        tickLabels: classNames,
-    })
+    // tfvis.render.confusionMatrix(container, {
+    //     values: confusionMatrix,
+    //     tickLabels: classNames,
+    // })
 
     labels.dispose()
 }
@@ -122,10 +122,18 @@ export const App = () => {
             const data = dataRef.current
 
             const model = createModel()
-            tfvis.show.modelSummary(
-                { name: 'Model Architecture', tab: 'Model' },
-                model
-            )
+            // tfvis.show.modelSummary(
+            //     { name: 'Model Architecture', tab: 'Model' },
+            //     model
+            // )
+
+            // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
+            // const container = {
+            //     name: 'Model Training',
+            //     tab: 'Model',
+            //     styles: { height: '1000px' },
+            // }
+            // const fitCallbacks = tfvis.show.fitCallbacks(container, metrics)
 
             await trainModel(model, data, 512, 5500, 1000)
             await showAccuracy(model, data)
