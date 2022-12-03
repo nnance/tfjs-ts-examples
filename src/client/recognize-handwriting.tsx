@@ -99,11 +99,26 @@ async function showConfusion(model: tf.Sequential, data: MnistData) {
 }
 
 export const App = () => {
+    const dataRef = useRef(new MnistData())
+
+    const [showData, setShowData] = useState(false)
+    const [runTraining, setTraining] = useState(false)
+
     useEffect(() => {
         async function run() {
-            const data = new MnistData()
+            const data = dataRef.current
             await data.load()
             await showExamples(data)
+        }
+
+        if (showData) {
+            run()
+        }
+    }, [showData])
+
+    useEffect(() => {
+        async function run() {
+            const data = dataRef.current
 
             const model = createModel()
             tfvis.show.modelSummary(
@@ -116,12 +131,23 @@ export const App = () => {
             await showConfusion(model, data)
         }
 
-        run()
-    }, [])
+        if (runTraining) {
+            run()
+        }
+    }, [runTraining])
+
+    const onLoadData = () => setShowData(true)
+    const onTrain = () => setTraining(true)
+
+    const buttonHandler = !showData ? onLoadData : onTrain
+    const buttonText = !showData ? 'Load Data' : 'Train Model'
 
     return (
         <div class="example-container centered-container">
             <TitleSection />
+            <div>
+                <button onClick={buttonHandler}>{buttonText}</button>
+            </div>
         </div>
     )
 }
