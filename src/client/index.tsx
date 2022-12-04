@@ -1,5 +1,13 @@
-import React from 'preact'
-import { render } from 'preact'
-import { App } from './recognize-handwriting'
+import * as React from 'react'
+import { render } from 'preact/compat'
+import { BrowserRouter } from 'react-router-dom'
+import { App } from './App'
 
-render(<App />, document.body)
+render(
+    <React.StrictMode>
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </React.StrictMode>,
+    document.body
+)

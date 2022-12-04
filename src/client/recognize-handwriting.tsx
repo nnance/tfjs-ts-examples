@@ -1,16 +1,18 @@
-import React from 'preact'
+import * as React from 'preact'
 import { useEffect, useRef, useState } from 'preact/compat'
 import { MnistData } from './MnistData'
 import * as tf from '@tensorflow/tfjs'
 // import * as tfvis from '@tensorflow/tfjs-vis'
 import { createModel, trainModel } from '../models/recognize-handwriting'
+import Button from '@mui/material/Button'
+import CssBaseline from '@mui/material/CssBaseline'
 
 function TitleSection() {
     return (
-        <section className="title-area">
+        <React.Fragment>
             <h1>TensorFlow.js: Examples</h1>
-            <p className="subtitle">Handwritten digit recognition with CNNs</p>
-        </section>
+            <p>Handwritten digit recognition with CNNs</p>
+        </React.Fragment>
     )
 }
 
@@ -152,11 +154,12 @@ export const App = () => {
     const buttonText = !showData ? 'Load Data' : 'Train Model'
 
     return (
-        <div className="example-container centered-container">
+        <React.Fragment>
+            <CssBaseline />
             <TitleSection />
-            <div>
-                <button onClick={buttonHandler}>{buttonText}</button>
-            </div>
-        </div>
+            <Button variant="contained" onClick={buttonHandler}>
+                {buttonText}
+            </Button>
+        </React.Fragment>
     )
 }
