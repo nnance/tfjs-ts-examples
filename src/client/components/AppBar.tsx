@@ -1,9 +1,7 @@
 import * as React from 'react'
 import { styled } from '@mui/material/styles'
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
-import MenuIcon from '@mui/icons-material/Menu'
 import Toolbar from '@mui/material/Toolbar'
-import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 
 const drawerWidth = 240
@@ -11,7 +9,6 @@ const drawerWidth = 240
 interface AppBarProps extends MuiAppBarProps {
     title: string
     open: boolean
-    toggleDrawer: () => void
 }
 
 const AppBarStyled = styled(MuiAppBar, {
@@ -33,7 +30,7 @@ const AppBarStyled = styled(MuiAppBar, {
 }))
 
 export function AppBar(props: AppBarProps) {
-    const { title, open, toggleDrawer } = props
+    const { title } = props
 
     return (
         <AppBarStyled position="absolute" {...props}>
@@ -42,18 +39,6 @@ export function AppBar(props: AppBarProps) {
                     pr: '24px', // keep right padding when drawer closed
                 }}
             >
-                <IconButton
-                    edge="start"
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={toggleDrawer}
-                    sx={{
-                        marginRight: '36px',
-                        ...(open && { display: 'none' }),
-                    }}
-                >
-                    <MenuIcon />
-                </IconButton>
                 <Typography
                     component="h1"
                     variant="h6"

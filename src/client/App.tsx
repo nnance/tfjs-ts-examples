@@ -2,11 +2,12 @@ import * as React from 'react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
-import { AppBar } from './AppBar'
-import { Drawer } from './Drawer'
+import { AppBar } from './components/AppBar'
+import { Drawer } from './components/Drawer'
 import { Home } from './Home'
 import { Routes, Route, Outlet } from 'react-router-dom'
 import { useState } from 'preact/hooks'
+import { FitToCurve } from './predict-2d-data'
 
 const mdTheme = createTheme()
 
@@ -16,17 +17,13 @@ interface LayoutProps {
 
 function Layout(props: LayoutProps) {
     const { title } = props
-    const [open, setOpen] = React.useState(true)
-    const toggleDrawer = () => {
-        setOpen(!open)
-    }
 
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar open={open} toggleDrawer={toggleDrawer} title={title} />
-                <Drawer open={open} toggleDrawer={toggleDrawer} />
+                <AppBar open={true} title={title} />
+                <Drawer open={true} />
                 <Box
                     component="main"
                     sx={{
@@ -53,6 +50,10 @@ export function App() {
         <Routes>
             <Route path="/" element={<Layout title={title} />}>
                 <Route index element={<Home setTitle={setTitle} />} />
+                <Route
+                    path="fit-to-curve"
+                    element={<FitToCurve setTitle={setTitle} />}
+                />
             </Route>
         </Routes>
     )

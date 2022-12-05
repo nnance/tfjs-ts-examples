@@ -17,13 +17,16 @@ app.post(EchoURL, (req, res) => {
     res.json(echoHandler(req.body))
 })
 
-export function getPredictions(model: LayersModel, data: CarPerformance[]) {
-    const tensorData = convertToTensor(data)
-    const predictedPoints = testModel(model, tensorData)
+export function getPredictions(
+    model: LayersModel,
+    originalPoints: CarPerformance[]
+) {
+    const tensorData = convertToTensor(originalPoints)
+    const predications = testModel(model, tensorData)
 
-    const originalPoints = data.map((d) => ({
-        x: d.horsepower,
-        y: d.mpg,
+    const predictedPoints = predications.map((d) => ({
+        horsepower: d.x,
+        mpg: d.y,
     }))
 
     return { predictedPoints, originalPoints }
