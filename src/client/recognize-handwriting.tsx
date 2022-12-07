@@ -1,31 +1,37 @@
-import * as React from 'preact'
-import { useEffect, useRef, useState } from 'preact/compat'
-import { MnistData } from './MnistData'
+import React from 'react'
 import * as tf from '@tensorflow/tfjs'
-// import * as tfvis from '@tensorflow/tfjs-vis'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { MnistData } from './MnistData'
 import { createModel, trainModel } from '../models/recognize-handwriting'
 import Button from '@mui/material/Button'
-import CssBaseline from '@mui/material/CssBaseline'
+import Toolbar from '@mui/material/Toolbar'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Paper from '@mui/material/Paper'
+import { HandwritingTabs } from './HandwritingTabs'
 
 function TitleSection() {
     return (
-        <React.Fragment>
-            <h1>TensorFlow.js: Examples</h1>
-            <p>Handwritten digit recognition with CNNs</p>
-        </React.Fragment>
+        <section>
+            <h1>Handwritten digit recognition with CNNs</h1>
+            <p>
+                In this tutorial, we will build a TensorFlow.js model to
+                recognize handwritten digits with a convolutional neural
+                network. First, we will train the classifier by having it “look”
+                at thousands of handwritten digit images and their labels. Then
+                we will evaluate the classifier&apos;s accuracy using test data
+                that the model has never seen.
+            </p>
+        </section>
     )
 }
 
-async function showExamples(data: MnistData) {
-    // Create a container in the visor
-    // const surface = tfvis
-    //     .visor()
-    //     .surface({ name: 'Input Data Examples', tab: 'Input Data' })
-
+async function getExamples(data: MnistData) {
     // Get the examples
     const examples = data.nextTestBatch(20)
     const numExamples = examples.xs.shape[0]
 
+    const results: tf.Tensor[] = []
     // Create a canvas element to render each example
     for (let i = 0; i < numExamples; i++) {
         const imageTensor = tf.tidy(() => {
@@ -34,16 +40,9 @@ async function showExamples(data: MnistData) {
                 .slice([i, 0], [1, examples.xs.shape[1]])
                 .reshape([28, 28, 1])
         })
-        const canvas = document.createElement('canvas')
-        canvas.width = 28
-        canvas.height = 28
-        canvas.style.margin = '4px;'
-        await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
-        document.body.appendChild(canvas)
-        // surface.drawArea.appendChild(canvas)
-
-        imageTensor.dispose()
+        results.push(imageTensor)
     }
+    return results
 }
 
 // const classNames = [
@@ -101,17 +100,26 @@ async function showConfusion(model: tf.Sequential, data: MnistData) {
     labels.dispose()
 }
 
-export const App = () => {
+export const RecognizeHandwriting = (props: {
+    setTitle: (title: string) => void
+}) => {
+    useEffect(() => {
+        props.setTitle('Recognize handwriting')
+    }, [props])
+
     const dataRef = useRef(new MnistData())
 
     const [showData, setShowData] = useState(false)
     const [runTraining, setTraining] = useState(false)
+    const [examples, setExamples] = useState<tf.Tensor<tf.Rank>[]>([])
 
     useEffect(() => {
         async function run() {
             const data = dataRef.current
             await data.load()
-            await showExamples(data)
+            const examples = await getExamples(data)
+            console.log(`example count: ${examples.length}`)
+            setExamples([...examples])
         }
 
         if (showData) {
@@ -154,12 +162,42 @@ export const App = () => {
     const buttonText = !showData ? 'Load Data' : 'Train Model'
 
     return (
-        <React.Fragment>
-            <CssBaseline />
-            <TitleSection />
-            <Button variant="contained" onClick={buttonHandler}>
-                {buttonText}
-            </Button>
-        </React.Fragment>
+        <Fragment>
+            <Toolbar />
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <Paper
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <TitleSection />
+                            <Button
+                                variant="contained"
+                                fullWidth={false}
+                                onClick={buttonHandler}
+                            >
+                                {buttonText}
+                            </Button>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Paper
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 360,
+                            }}
+                        >
+                            <HandwritingTabs examples={examples} />
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Container>
+        </Fragment>
     )
 }

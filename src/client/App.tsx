@@ -8,6 +8,7 @@ import { Home } from './Home'
 import { Routes, Route, Outlet } from 'react-router-dom'
 import { useState } from 'preact/hooks'
 import { FitToCurve } from './predict-2d-data'
+import { RecognizeHandwriting } from './recognize-handwriting'
 
 const mdTheme = createTheme()
 
@@ -53,6 +54,10 @@ export function App() {
                 <Route
                     path="fit-to-curve"
                     element={<FitToCurve setTitle={setTitle} />}
+                />
+                <Route
+                    path="recognize-handwriting"
+                    element={<RecognizeHandwriting setTitle={setTitle} />}
                 />
             </Route>
         </Routes>
