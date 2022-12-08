@@ -4,9 +4,9 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { Title } from './components/Title'
-import { ModelSummary } from './components/ModelSummary'
-import { TensorImage } from './components/TensorImage'
+import { Title } from './Title'
+import { ModelSummary } from './ModelSummary'
+import { TensorImage } from './TensorImage'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -77,7 +77,7 @@ export function HandwritingTabs(props: TabsProps) {
                 <ModelSummary model={model} />
             </TabPanel>
             <TabPanel value={value} index={2}>
-                Item Three
+                Evaluation
             </TabPanel>
         </Box>
     )

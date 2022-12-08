@@ -8,7 +8,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { HandwritingTabs } from './HandwritingTabs'
+import { HandwritingTabs } from './components/HandwritingTabs'
 
 function TitleSection() {
     return (
