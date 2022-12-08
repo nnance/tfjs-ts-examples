@@ -50,18 +50,19 @@ async function getExamples(data: MnistData) {
     return results
 }
 
-// const classNames = [
-//     'Zero',
-//     'One',
-//     'Two',
-//     'Three',
-//     'Four',
-//     'Five',
-//     'Six',
-//     'Seven',
-//     'Eight',
-//     'Nine',
-// ]
+/*
+const classNames = [
+    'Zero',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+]
 
 function doPrediction(
     model: tf.Sequential,
@@ -86,24 +87,25 @@ function doPrediction(
 
 async function showAccuracy(model: tf.Sequential, data: MnistData) {
     const [preds, labels] = doPrediction(model, data)
-    // const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
+    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
     const container = { name: 'Accuracy', tab: 'Evaluation' }
-    // tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
+    tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
 
     labels.dispose()
 }
 
 async function showConfusion(model: tf.Sequential, data: MnistData) {
     const [preds, labels] = doPrediction(model, data)
-    // const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
+    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
     const container = { name: 'Confusion Matrix', tab: 'Evaluation' }
-    // tfvis.render.confusionMatrix(container, {
-    //     values: confusionMatrix,
-    //     tickLabels: classNames,
-    // })
+    tfvis.render.confusionMatrix(container, {
+        values: confusionMatrix,
+        tickLabels: classNames,
+    })
 
     labels.dispose()
 }
+*/
 
 export const RecognizeHandwriting = (props: {
     setTitle: (title: string) => void
@@ -114,9 +116,9 @@ export const RecognizeHandwriting = (props: {
 
     const dataRef = useRef(new MnistData())
 
-    const [showData, setShowData] = useState(false)
     const [runTraining, setTraining] = useState(false)
     const [examples, setExamples] = useState<ImageData[]>([])
+    const [model] = useState<tf.Sequential>(createModel())
 
     useEffect(() => {
         async function run() {
@@ -125,21 +127,12 @@ export const RecognizeHandwriting = (props: {
             const examples = await getExamples(data)
             setExamples([...examples])
         }
-
-        if (showData) {
-            run()
-        }
-    }, [showData])
+        run()
+    }, [])
 
     useEffect(() => {
         async function run() {
             const data = dataRef.current
-
-            const model = createModel()
-            // tfvis.show.modelSummary(
-            //     { name: 'Model Architecture', tab: 'Model' },
-            //     model
-            // )
 
             // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
             // const container = {
@@ -150,20 +143,14 @@ export const RecognizeHandwriting = (props: {
             // const fitCallbacks = tfvis.show.fitCallbacks(container, metrics)
 
             await trainModel(model, data, 512, 5500, 1000)
-            await showAccuracy(model, data)
-            await showConfusion(model, data)
+            // await showAccuracy(model, data)
+            // await showConfusion(model, data)
         }
 
         if (runTraining) {
             run()
         }
-    }, [runTraining])
-
-    const onLoadData = () => setShowData(true)
-    const onTrain = () => setTraining(true)
-
-    const buttonHandler = !showData ? onLoadData : onTrain
-    const buttonText = !showData ? 'Load Data' : 'Train Model'
+    }, [runTraining, model])
 
     return (
         <Fragment>
@@ -182,9 +169,9 @@ export const RecognizeHandwriting = (props: {
                             <Button
                                 variant="contained"
                                 fullWidth={false}
-                                onClick={buttonHandler}
+                                onClick={() => setTraining(true)}
                             >
-                                {buttonText}
+                                Train Model
                             </Button>
                         </Paper>
                     </Grid>
@@ -194,10 +181,13 @@ export const RecognizeHandwriting = (props: {
                                 p: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                height: 360,
+                                minHeight: 360,
                             }}
                         >
-                            <HandwritingTabs examples={examples} />
+                            <HandwritingTabs
+                                examples={examples}
+                                model={model}
+                            />
                         </Paper>
                     </Grid>
                 </Grid>
