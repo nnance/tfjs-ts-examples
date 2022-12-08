@@ -31,8 +31,9 @@ async function getExamples(data: MnistData) {
     const examples = data.nextTestBatch(20)
     const numExamples = examples.xs.shape[0]
 
-    const results: tf.Tensor[] = []
+    const results: ImageData[] = []
     // Create a canvas element to render each example
+    const canvas = document.createElement('canvas')
     for (let i = 0; i < numExamples; i++) {
         const imageTensor = tf.tidy(() => {
             // Reshape the image to 28x28 px
@@ -40,7 +41,11 @@ async function getExamples(data: MnistData) {
                 .slice([i, 0], [1, examples.xs.shape[1]])
                 .reshape([28, 28, 1])
         })
-        results.push(imageTensor)
+        await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
+        imageTensor.dispose()
+
+        const imageData = canvas.getContext('2d')?.getImageData(0, 0, 28, 28)
+        if (imageData) results.push(imageData)
     }
     return results
 }
@@ -111,14 +116,13 @@ export const RecognizeHandwriting = (props: {
 
     const [showData, setShowData] = useState(false)
     const [runTraining, setTraining] = useState(false)
-    const [examples, setExamples] = useState<tf.Tensor<tf.Rank>[]>([])
+    const [examples, setExamples] = useState<ImageData[]>([])
 
     useEffect(() => {
         async function run() {
             const data = dataRef.current
             await data.load()
             const examples = await getExamples(data)
-            console.log(`example count: ${examples.length}`)
             setExamples([...examples])
         }
 

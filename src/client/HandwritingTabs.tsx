@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as tf from '@tensorflow/tfjs'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
@@ -34,27 +33,29 @@ function TabPanel(props: TabPanelProps) {
 }
 
 interface SmallImageProps {
-    key: number
-    imageTensor: tf.Tensor<tf.Rank>
+    imageData: ImageData
 }
 
 function SmallImage(props: SmallImageProps) {
-    const { key, imageTensor } = props
     const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
     useEffect(() => {
-        if (canvasRef.current) {
-            tf.browser.toPixels(imageTensor as tf.Tensor2D, canvasRef.current)
+        async function render() {
+            if (canvasRef.current) {
+                canvasRef.current
+                    .getContext('2d')
+                    ?.putImageData(props.imageData, 0, 0)
+            }
         }
-        imageTensor.dispose()
-    }, [canvasRef, imageTensor])
+
+        render()
+    }, [canvasRef, props])
 
     const element = React.createElement('canvas', {
         width: 28,
         height: 28,
         style: { margin: '4px;' },
         ref: canvasRef,
-        key,
     })
     return element
 }
@@ -67,7 +68,7 @@ function a11yProps(index: number) {
 }
 
 type TabsProps = {
-    examples: tf.Tensor<tf.Rank>[]
+    examples: ImageData[]
 }
 
 export function HandwritingTabs(props: TabsProps) {
@@ -94,8 +95,7 @@ export function HandwritingTabs(props: TabsProps) {
             <TabPanel value={value} index={0}>
                 <div style={{ width: '100%', height: '100%' }}>
                     {props.examples.map((tensor, key) => {
-                        console.log(`example: ${key}`)
-                        return <SmallImage key={key} imageTensor={tensor} />
+                        return <SmallImage key={key} imageData={tensor} />
                     })}
                 </div>
             </TabPanel>
