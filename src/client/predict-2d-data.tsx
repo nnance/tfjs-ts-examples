@@ -4,8 +4,11 @@ import { Fragment } from 'preact'
 import React from 'react'
 import { useEffect } from 'react'
 import { getPredictions } from '../server'
-import vegaEmbed from 'vega-embed'
+import { VisualizationSpec } from 'vega-embed'
 import { Title } from './components/Title'
+import { scatterPlot } from './components/charts/scatterplot'
+import { Chart } from './components/Chart'
+import { useState } from 'preact/hooks'
 
 function TitleSection() {
     return (
@@ -55,36 +58,31 @@ async function getDataWithPredictions() {
     return { originalPoints, predictedPoints }
 }
 
-const renderCarPerformanceChart =
-    (id: string) => (data: EnrichedPredictionResults) => {
-        const { originalPoints, predictedPoints } = data
-        vegaEmbed(id, {
-            $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-            width: 'container',
-            height: 'container',
-            data: {
-                values: [...originalPoints, ...predictedPoints],
-            },
-            mark: 'circle',
-            encoding: {
-                x: {
-                    field: 'horsepower',
-                    type: 'quantitative',
-                    title: 'Horsepower',
-                },
-                y: { field: 'mpg', type: 'quantitative', title: 'MPG' },
-                color: { field: 'type', type: 'nominal', title: 'Type' },
-            },
-        })
-    }
+const carPerformanceSpec = (data: EnrichedPredictionResults) => {
+    const { originalPoints, predictedPoints } = data
+    const orig = originalPoints.map((p) => ({ x: p.horsepower, y: p.mpg }))
+    const predicted = predictedPoints.map((p) => ({
+        x: p.horsepower,
+        y: p.mpg,
+    }))
+    return scatterPlot(
+        { values: [orig, predicted], series: ['original', 'predicted'] },
+        { xLabel: 'Horsepower', yLabel: 'MPG' }
+    )
+}
 
 export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
+    const [spec, setSpec] = useState<VisualizationSpec>()
+
     useEffect(() => {
         props.setTitle('Fit To Curve')
     }, [props])
 
     useEffect(() => {
-        getDataWithPredictions().then(renderCarPerformanceChart('#my_dataviz'))
+        getDataWithPredictions().then((data) => {
+            const spec = carPerformanceSpec(data)
+            setSpec(spec)
+        })
     }, [])
 
     return (
@@ -113,10 +111,7 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
                             }}
                         >
                             <Title>MPG by Horsepower</Title>
-                            <div
-                                id="my_dataviz"
-                                style={{ width: '100%', height: '100%' }}
-                            ></div>
+                            <Chart spec={spec} />
                         </Paper>
                     </Grid>
                 </Grid>
