@@ -1,15 +1,6 @@
 import { VisualizationSpec } from 'vega-embed'
 import { XYPlotData, XYPlotOptions } from './types'
-import { normalizeData } from './utils'
-
-const defaultOpts: XYPlotOptions = {
-    xLabel: 'x',
-    yLabel: 'y',
-    xType: 'quantitative',
-    yType: 'quantitative',
-    zoomToFit: false,
-    fontSize: 11,
-}
+import { defaultOpts, normalizeData } from './utils'
 
 export function scatterPlot(
     data: XYPlotData,
@@ -18,9 +9,11 @@ export function scatterPlot(
     const options: XYPlotOptions = { ...defaultOpts, ...opts }
     const values = normalizeData(data)
 
+    console.dir(options)
+
     return {
-        width: opts.width || 'container',
-        height: opts.height || 'container',
+        width: options.width,
+        height: options.height,
         padding: 0,
         autosize: {
             type: 'fit',

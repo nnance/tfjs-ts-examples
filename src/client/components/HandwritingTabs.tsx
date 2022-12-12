@@ -7,6 +7,10 @@ import Box from '@mui/material/Box'
 import { Title } from './Title'
 import { ModelSummary } from './ModelSummary'
 import { TensorImage } from './TensorImage'
+import { lineChart } from './charts/linechart'
+import { VisualizationSpec } from 'vega-embed'
+import { Chart } from './Chart'
+import Paper from '@mui/material/Paper'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -49,10 +53,27 @@ interface TabsProps {
 export function HandwritingTabs(props: TabsProps) {
     const { examples, model } = props
     const [value, setValue] = React.useState(0)
+    const [spec, setSpec] = React.useState<VisualizationSpec>()
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
+
+    React.useEffect(() => {
+        const series1 = Array(100)
+            .fill(0)
+            .map(() => Math.random() * 100 - Math.random() * 50)
+            .map((y, x) => ({ x, y }))
+
+        const series2 = Array(100)
+            .fill(0)
+            .map(() => Math.random() * 100 - Math.random() * 150)
+            .map((y, x) => ({ x, y }))
+
+        const series = ['First', 'Second']
+        const data = { values: [series1, series2], series }
+        setSpec(lineChart(data, {}))
+    }, [setSpec])
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -77,7 +98,17 @@ export function HandwritingTabs(props: TabsProps) {
                 <ModelSummary model={model} />
             </TabPanel>
             <TabPanel value={value} index={2}>
-                Evaluation
+                <Paper
+                    sx={{
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: 360,
+                    }}
+                >
+                    <Title>Example Line Chart</Title>
+                    <Chart spec={spec} />
+                </Paper>
             </TabPanel>
         </Box>
     )

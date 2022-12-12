@@ -1,4 +1,15 @@
-import { Point2D, XYPlotData } from './types'
+import { Point2D, XYPlotData, XYPlotOptions } from './types'
+
+export const defaultOpts: XYPlotOptions = {
+    width: 'container',
+    height: 'container',
+    xLabel: 'x',
+    yLabel: 'y',
+    xType: 'quantitative',
+    yType: 'quantitative',
+    zoomToFit: false,
+    fontSize: 11,
+}
 
 export function normalizeData(data: XYPlotData) {
     const _series = data.series || []

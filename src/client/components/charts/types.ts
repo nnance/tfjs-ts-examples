@@ -13,11 +13,11 @@ export interface VisOptions {
     /**
      * Width of chart in px
      */
-    width?: number
+    width?: number | 'container'
     /**
      * Height of chart in px
      */
-    height?: number
+    height?: number | 'container'
     /**
      * Label for xAxis
      */
