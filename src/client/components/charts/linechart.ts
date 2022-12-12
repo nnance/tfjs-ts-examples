@@ -6,10 +6,9 @@ export function lineChart(
     data: XYPlotData,
     opts: XYPlotOptions
 ): VisualizationSpec {
-    const options: XYPlotOptions = { ...defaultOpts, ...opts }
     const values = normalizeData(data)
 
-    const baseSpec = defaultSpec(options)
+    const baseSpec = defaultSpec({ ...defaultOpts, ...opts })
     const spec: Partial<VisualizationSpec> = {
         data: { values },
         mark: {
