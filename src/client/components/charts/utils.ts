@@ -1,3 +1,4 @@
+import { VisualizationSpec } from 'vega-embed'
 import { Point2D, XYPlotData, XYPlotOptions } from './types'
 
 export const defaultOpts: XYPlotOptions = {
@@ -10,6 +11,54 @@ export const defaultOpts: XYPlotOptions = {
     zoomToFit: false,
     fontSize: 11,
 }
+
+export const defaultSpec = (
+    opts: XYPlotOptions
+): Partial<VisualizationSpec> => ({
+    width: opts.width,
+    height: opts.height,
+    padding: 0,
+    autosize: {
+        type: 'fit',
+        contains: 'padding',
+        resize: true,
+    },
+    config: {
+        axis: {
+            labelFontSize: opts.fontSize,
+            titleFontSize: opts.fontSize,
+        },
+        text: { fontSize: opts.fontSize },
+        legend: {
+            labelFontSize: opts.fontSize,
+            titleFontSize: opts.fontSize,
+        },
+    },
+    encoding: {
+        x: {
+            field: 'x',
+            type: opts.xType,
+            title: opts.xLabel,
+        },
+        y: {
+            field: 'y',
+            type: opts.yType,
+            title: opts.yLabel,
+        },
+        tooltip: [
+            { field: 'series', type: 'ordinal' },
+            { field: 'x', title: opts.xLabel, type: 'quantitative' },
+            { field: 'y', title: opts.yLabel, type: 'quantitative' },
+        ],
+        color: {
+            field: 'series',
+            type: 'nominal',
+            scale: {
+                range: opts.seriesColors,
+            },
+        },
+    },
+})
 
 export function normalizeData(data: XYPlotData) {
     const _series = data.series || []
