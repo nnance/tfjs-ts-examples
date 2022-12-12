@@ -48,6 +48,11 @@ export function scatterPlot(
                 type: options.yType,
                 title: options.yLabel,
             },
+            tooltip: [
+                { field: 'series', type: 'ordinal' },
+                { field: 'x', title: options.xLabel, type: 'quantitative' },
+                { field: 'y', title: options.yLabel, type: 'quantitative' },
+            ],
             color: {
                 field: 'series',
                 type: 'nominal',
