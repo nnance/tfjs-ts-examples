@@ -18,6 +18,18 @@ interface TabPanelProps {
     value: number
 }
 
+export type BatchResult = {
+    batchNumber: number
+    acc: number
+    loss: number
+}
+
+interface TabsProps {
+    examples: ImageData[]
+    model: tf.LayersModel
+    batchResults: BatchResult[]
+}
+
 function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props
 
@@ -45,35 +57,45 @@ function a11yProps(index: number) {
     }
 }
 
-interface TabsProps {
-    examples: ImageData[]
-    model: tf.LayersModel
-}
-
 export function HandwritingTabs(props: TabsProps) {
-    const { examples, model } = props
+    const { examples, model, batchResults } = props
     const [value, setValue] = React.useState(0)
     const [spec, setSpec] = React.useState<VisualizationSpec>()
+    const [accSpec, setAccSpec] = React.useState<VisualizationSpec>()
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
 
     React.useEffect(() => {
-        const series1 = Array(100)
-            .fill(0)
-            .map(() => Math.random() * 100 - Math.random() * 50)
-            .map((y, x) => ({ x, y }))
+        const values = batchResults.map((batch) => ({
+            x: batch.batchNumber,
+            y: batch.loss,
+        }))
+        const series = ['loss']
+        const data = { values, series }
+        setSpec(
+            lineChart(data, {
+                xLabel: 'Batch',
+                yLabel: 'Value',
+            })
+        )
+    }, [batchResults, setSpec])
 
-        const series2 = Array(100)
-            .fill(0)
-            .map(() => Math.random() * 100 - Math.random() * 150)
-            .map((y, x) => ({ x, y }))
-
-        const series = ['First', 'Second']
-        const data = { values: [series1, series2], series }
-        setSpec(lineChart(data, {}))
-    }, [setSpec])
+    React.useEffect(() => {
+        const values = batchResults.map((batch) => ({
+            x: batch.batchNumber,
+            y: batch.acc,
+        }))
+        const series = ['acc']
+        const data = { values, series }
+        setAccSpec(
+            lineChart(data, {
+                xLabel: 'Batch',
+                yLabel: 'Value',
+            })
+        )
+    }, [batchResults, setAccSpec])
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -95,21 +117,32 @@ export function HandwritingTabs(props: TabsProps) {
                 ))}
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <ModelSummary model={model} />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
                 <Paper
                     sx={{
                         p: 2,
                         display: 'flex',
                         flexDirection: 'column',
-                        height: 360,
                     }}
                 >
-                    <Title>Example Line Chart</Title>
-                    <Chart spec={spec} />
+                    <Title>Model Summary</Title>
+                    <ModelSummary model={model} />
                 </Paper>
+                {batchResults.length > 0 && (
+                    <Paper
+                        sx={{
+                            p: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: 700,
+                        }}
+                    >
+                        <Title>onBatchEnd</Title>
+                        <Chart spec={spec} />
+                        <Chart spec={accSpec} />
+                    </Paper>
+                )}
             </TabPanel>
+            <TabPanel value={value} index={2}></TabPanel>
         </Box>
     )
 }

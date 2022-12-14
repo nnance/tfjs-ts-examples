@@ -8,7 +8,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { HandwritingTabs } from './components/HandwritingTabs'
+import { BatchResult, HandwritingTabs } from './components/HandwritingTabs'
 
 function TitleSection() {
     return (
@@ -111,6 +111,35 @@ async function showConfusion(model: tf.Sequential, data: MnistData) {
 }
 */
 
+async function fetchTrainingResults(model: tf.Sequential, data: MnistData) {
+    const results: BatchResult[] = []
+    let currentEpoch = 0
+    const batchSize = 11
+
+    function onBatchEnd(batch: number, logs?: tf.Logs) {
+        if (!logs) return
+
+        const batchNumber = currentEpoch * batchSize + batch
+        console.log(`batch: ${batchNumber} acc: ${logs?.acc}`)
+        results.push({
+            batchNumber,
+            acc: logs?.acc,
+            loss: logs?.loss,
+        })
+    }
+
+    function onEpochEnd(epoch: number) {
+        currentEpoch = epoch + 1
+    }
+
+    await trainModel(model, data, 512, 5500, 1000, {
+        onBatchEnd,
+        onEpochEnd,
+    })
+
+    return results
+}
+
 export const RecognizeHandwriting = (props: {
     setTitle: (title: string) => void
 }) => {
@@ -119,10 +148,11 @@ export const RecognizeHandwriting = (props: {
     }, [props])
 
     const dataRef = useRef(new MnistData())
+    const modelRef = useRef(createModel())
 
     const [runTraining, setTraining] = useState(false)
     const [examples, setExamples] = useState<ImageData[]>([])
-    const [model] = useState<tf.Sequential>(createModel())
+    const [batchResults, setBatchResults] = useState<BatchResult[]>([])
 
     useEffect(() => {
         async function run() {
@@ -136,17 +166,15 @@ export const RecognizeHandwriting = (props: {
 
     useEffect(() => {
         async function run() {
-            const data = dataRef.current
+            const trainingResults = await fetchTrainingResults(
+                modelRef.current,
+                dataRef.current
+            )
+            setBatchResults(trainingResults)
+            setTraining(false)
 
             // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
-            // const container = {
-            //     name: 'Model Training',
-            //     tab: 'Model',
-            //     styles: { height: '1000px' },
-            // }
-            // const fitCallbacks = tfvis.show.fitCallbacks(container, metrics)
 
-            await trainModel(model, data, 512, 5500, 1000)
             // await showAccuracy(model, data)
             // await showConfusion(model, data)
         }
@@ -154,7 +182,7 @@ export const RecognizeHandwriting = (props: {
         if (runTraining) {
             run()
         }
-    }, [runTraining, model])
+    }, [runTraining, modelRef, dataRef, setBatchResults, setTraining])
 
     return (
         <Fragment>
@@ -174,8 +202,9 @@ export const RecognizeHandwriting = (props: {
                                 variant="contained"
                                 fullWidth={false}
                                 onClick={() => setTraining(true)}
+                                disabled={runTraining}
                             >
-                                Train Model
+                                {runTraining ? 'Training...' : 'Train Model'}
                             </Button>
                         </Paper>
                     </Grid>
@@ -190,7 +219,8 @@ export const RecognizeHandwriting = (props: {
                         >
                             <HandwritingTabs
                                 examples={examples}
-                                model={model}
+                                model={modelRef.current}
+                                batchResults={batchResults}
                             />
                         </Paper>
                     </Grid>

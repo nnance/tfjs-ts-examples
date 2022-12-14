@@ -7,7 +7,7 @@ export interface Point2D {
 }
 
 /**
- * Common visualisation options for '.render' functions.
+ * Common visualization options for '.render' functions.
  */
 export interface VisOptions {
     /**
