@@ -1,7 +1,7 @@
 import React from 'react'
 import * as tf from '@tensorflow/tfjs'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { MnistData } from './MnistData'
+import { MnistData } from '../data/mnist'
 import { createModel, trainModel } from '../models/recognize-handwriting'
 import Button from '@mui/material/Button'
 import Toolbar from '@mui/material/Toolbar'

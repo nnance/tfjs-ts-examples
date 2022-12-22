@@ -1,8 +1,7 @@
-import * as tf from '@tensorflow/tfjs-node-gpu'
-import * as fs from 'fs'
-import { CarPerformance } from '../server/cars'
+import * as tf from '@tensorflow/tfjs'
+import { CarPerformance } from '../data/cars'
 
-const fileName = 'carPerformanceModel'
+export const fileName = 'carPerformanceModel'
 
 export function createModel() {
     // Create a sequential model
@@ -63,28 +62,6 @@ export function convertToTensor(data: CarPerformance[]) {
     })
 }
 
-export async function trainModel(
-    model: tf.Sequential,
-    inputs: tf.Tensor<tf.Rank>,
-    labels: tf.Tensor<tf.Rank>
-) {
-    // Prepare the model for training.
-    model.compile({
-        optimizer: tf.train.adam(),
-        loss: tf.losses.meanSquaredError,
-        metrics: ['mse'],
-    })
-
-    const batchSize = 32
-    const epochs = 50
-
-    return await model.fit(inputs, labels, {
-        batchSize,
-        epochs,
-        shuffle: true,
-    })
-}
-
 export function testModel(
     model: tf.LayersModel,
     normalizationData: ReturnType<typeof convertToTensor>
@@ -114,13 +91,6 @@ export function testModel(
     return predictedPoints
 }
 
-export function saveModel(model: tf.Sequential) {
-    if (!fs.existsSync('./.artifacts')) {
-        fs.mkdirSync('./.artifacts')
-    }
-    return model.save(`file://.artifacts/${fileName}`)
-}
-
-export function loadModel() {
-    return tf.loadLayersModel(`file://.artifacts/${fileName}/model.json`)
+export function loadModel(path: string) {
+    return tf.loadLayersModel(`file://${path}/${fileName}/model.json`)
 }

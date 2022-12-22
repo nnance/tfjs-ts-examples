@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import * as fs from 'fs'
-import { MnistData } from '../client/MnistData'
+import { MnistData } from '../data/mnist'
 
 const fileName = 'recognizeHandwriting'
 
