@@ -2,12 +2,13 @@
   "name": "tfjs-ts-examples",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "source": "./public/index.html",
   "scripts": {
-    "build": "tsc",
-    "start-server": "node ./dist/server/index.js",
+    "build": "tsc && parcel build",
+    "start": "node ./dist/server/index.js",
     "dev-server": "nodemon ./src/server/index.ts --watch ./src/server/**/*.ts",
-    "dev-client": "parcel ./public/index.html",
+    "dev-client": "parcel",
     "format": "prettier --write './src/**/*.{ts,tsx}'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

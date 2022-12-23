@@ -1,9 +1,10 @@
 import { getServer } from './server/app'
-import { trainPrediction } from './server/train'
+import { trainPrediction, trainHandwriting } from './server/train'
 
 const port = 8080
 
 type Commands = 'train' | 'serve'
+type Models = 'recognize-handwriting' | 'predict'
 
 type Argument = {
     name: string
@@ -17,9 +18,10 @@ type Command = {
 }
 
 type TrainOptions = {
+    model: Models
     epochs: number
     batch_size: number
-    model_save_path: string
+    model_save_path?: string
 }
 
 type ServeOptions = {
@@ -31,6 +33,10 @@ const commands: Command[] = [
         name: 'train',
         help: 'Train a model.',
         args: [
+            {
+                name: '--model',
+                help: 'Model to be trained.',
+            },
             {
                 name: '--epochs',
                 help: 'Number of epochs to be used to train the model.',
@@ -86,14 +92,17 @@ function getCommand(command: Commands): Command {
 }
 
 function parseTrainArgs(args: string[]) {
-    const options: Partial<TrainOptions> = {
+    const options: TrainOptions = {
+        model: 'predict',
         epochs: 20,
         batch_size: 128,
     }
 
     args.forEach((arg) => {
         const [key, value] = arg.split('=')
-        if (key === '--epochs') {
+        if (key === '--model') {
+            options.model = value as Models
+        } else if (key === '--epochs') {
             options.epochs = parseInt(value)
         } else if (key === '--batch_size') {
             options.batch_size = parseInt(value)
@@ -119,7 +128,15 @@ try {
     const command = getCommand(process.argv[2] as Commands)
     if (command.name === 'train') {
         const args = parseTrainArgs(process.argv.slice(3))
-        trainPrediction(args.epochs, args.batch_size, args.model_save_path)
+        if (args.model === 'recognize-handwriting') {
+            console.log('Training handwriting recognition model...')
+            trainHandwriting(args.epochs, args.batch_size, args.model_save_path)
+        } else if (args.model === 'predict') {
+            console.log('Training prediction model...')
+            trainPrediction(args.epochs, args.batch_size, args.model_save_path)
+        } else {
+            throw new Error(`Model ${args.model} not found.`)
+        }
     } else if (command.name === 'serve') {
         const args = parseServeArgs(process.argv.slice(3))
         console.log('Serving model...')

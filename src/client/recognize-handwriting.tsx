@@ -2,7 +2,7 @@ import React from 'react'
 import * as tf from '@tensorflow/tfjs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { MnistData } from '../data/mnist'
-import { createModel, trainModel } from '../models/recognize-handwriting'
+import { createModel } from '../models/recognize-handwriting'
 import Button from '@mui/material/Button'
 import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
@@ -132,10 +132,10 @@ async function fetchTrainingResults(model: tf.Sequential, data: MnistData) {
         currentEpoch = epoch + 1
     }
 
-    await trainModel(model, data, 512, 5500, 1000, {
-        onBatchEnd,
-        onEpochEnd,
-    })
+    // await trainModel(model, data, 512, 5500, 1000, {
+    //     onBatchEnd,
+    //     onEpochEnd,
+    // })
 
     return results
 }

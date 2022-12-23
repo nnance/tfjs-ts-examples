@@ -3,20 +3,51 @@ import * as tf from '@tensorflow/tfjs-node-gpu'
 import { getData } from '../data/cars'
 import * as predict from '../models/predict-2d-data'
 import * as handwriting from '../models/recognize-handwriting'
-import { MnistData } from '../data/mnist'
+import { MnistData } from '../data/mnist-node'
 
 export const defaultPath = './.artifacts'
 
-export async function trainHandwriting() {
-    const { createModel, trainModel, saveModel } = handwriting
+function saveModel(model: tf.Sequential, path: string, fileName: string) {
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path)
+    }
+    return model.save(`file://${path}/${fileName}`)
+}
 
-    const model = createModel()
+export async function trainHandwriting(
+    epochs = 20,
+    batchSize = 128,
+    modelSavePath = defaultPath
+) {
+    const { createModel, fileName } = handwriting
+
     const data = new MnistData()
+    const model = createModel()
+    await data.loadData()
 
-    // Train the model
-    await trainModel(model, data, 512, 5500, 1000)
+    const { images: trainImages, labels: trainLabels } = data.getTrainData()
+    model.summary()
+
+    const validationSplit = 0.15
+    await model.fit(trainImages, trainLabels, {
+        epochs,
+        batchSize,
+        validationSplit,
+    })
+
+    const { images: testImages, labels: testLabels } = data.getTestData()
+    const evalOutput = model.evaluate(testImages, testLabels)
+
+    if (!Array.isArray(evalOutput)) return
+
+    console.log(
+        `\nEvaluation result:\n` +
+            `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; ` +
+            `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`
+    )
     console.log('Training completed')
-    const results = await saveModel(model)
+
+    const results = await saveModel(model, modelSavePath, fileName)
     console.log(
         `Model saved as ${results.modelArtifactsInfo.modelTopologyType}`
     )
@@ -27,7 +58,7 @@ export async function trainPrediction(
     batchSize = 32,
     modelSavePath = defaultPath
 ) {
-    const { createModel, convertToTensor } = predict
+    const { createModel, convertToTensor, fileName } = predict
 
     async function trainModel(
         model: tf.Sequential,
@@ -50,13 +81,6 @@ export async function trainPrediction(
         })
     }
 
-    function saveModel(model: tf.Sequential, path: string) {
-        if (!fs.existsSync(path)) {
-            fs.mkdirSync(path)
-        }
-        return model.save(`file://${path}/${predict.fileName}`)
-    }
-
     const model = createModel()
     const data = await getData()
 
@@ -67,7 +91,7 @@ export async function trainPrediction(
     // Train the model
     await trainModel(model, inputs, labels, epochs, batchSize)
     console.log('Done Training')
-    const results = await saveModel(model, modelSavePath)
+    const results = await saveModel(model, modelSavePath, fileName)
     console.log(
         `Model saved as ${results.modelArtifactsInfo.modelTopologyType}`
     )

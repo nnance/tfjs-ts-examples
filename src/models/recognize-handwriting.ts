@@ -1,8 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
-import * as fs from 'fs'
-import { MnistData } from '../data/mnist'
 
-const fileName = 'recognizeHandwriting'
+export const fileName = 'recognizeHandwriting'
 
 export function createModel() {
     const model = tf.sequential()
@@ -70,41 +68,8 @@ export function createModel() {
     return model
 }
 
-export async function trainModel(
-    model: tf.Sequential,
-    data: MnistData,
-    batchSize: number,
-    trainDataSize: number,
-    testDataSize: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fitCallbacks?: any
-) {
-    const [trainXs, trainYs] = tf.tidy(() => {
-        const d = data.nextTrainBatch(trainDataSize)
-        return [d.xs.reshape([trainDataSize, 28, 28, 1]), d.labels]
-    })
-
-    const [testXs, testYs] = tf.tidy(() => {
-        const d = data.nextTestBatch(testDataSize)
-        return [d.xs.reshape([testDataSize, 28, 28, 1]), d.labels]
-    })
-
-    return model.fit(trainXs, trainYs, {
-        batchSize,
-        validationData: [testXs, testYs],
-        epochs: 10,
-        shuffle: true,
-        callbacks: fitCallbacks,
-    })
-}
-
-export function saveModel(model: tf.Sequential) {
-    if (!fs.existsSync('./.artifacts')) {
-        fs.mkdirSync('./.artifacts')
-    }
-    return model.save(`file://.artifacts/${fileName}`)
-}
-
-export function loadModel() {
-    return tf.loadLayersModel(`file://.artifacts/${fileName}/model.json`)
+export function loadTrainedModel() {
+    return tf.loadLayersModel(
+        `http://localhost:8080/models/${fileName}/model.json`
+    )
 }
