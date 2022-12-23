@@ -91,6 +91,8 @@ export function testModel(
     return predictedPoints
 }
 
-export function loadModel(path: string) {
-    return tf.loadLayersModel(`file://${path}/${fileName}/model.json`)
+export function loadTrainedModel() {
+    return tf.loadLayersModel(
+        `http://localhost:8080/models/${fileName}/model.json`
+    )
 }

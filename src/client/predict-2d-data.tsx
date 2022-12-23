@@ -9,6 +9,8 @@ import { Title } from './components/Title'
 import { scatterPlot } from './components/charts/scatterplot'
 import { Chart } from './components/Chart'
 import { useState } from 'preact/hooks'
+import { loadTrainedModel } from '../models/predict-2d-data'
+import { getData } from '../data/cars'
 
 function TitleSection() {
     return (
@@ -30,7 +32,6 @@ function TitleSection() {
     )
 }
 
-type PredictionResults = ReturnType<typeof getPredictions>
 type EnrichedPrediction = {
     type: string
     mpg: number
@@ -42,14 +43,17 @@ type EnrichedPredictionResults = {
 }
 
 async function getDataWithPredictions() {
-    const res = await fetch('http://localhost:8080/simple-predictions/test')
-    const data = (await res.json()) as PredictionResults
+    const model = await loadTrainedModel()
+    const data = await getData()
+    const predictions = getPredictions(model, data)
 
-    const originalPoints = data.originalPoints.map<EnrichedPrediction>((d) => {
-        return { ...d, type: 'original' }
-    })
+    const originalPoints = predictions.originalPoints.map<EnrichedPrediction>(
+        (d) => {
+            return { ...d, type: 'original' }
+        }
+    )
 
-    const predictedPoints = data.predictedPoints.map<EnrichedPrediction>(
+    const predictedPoints = predictions.predictedPoints.map<EnrichedPrediction>(
         (d) => {
             return { ...d, type: 'predicted' }
         }
