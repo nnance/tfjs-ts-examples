@@ -1,7 +1,5 @@
-import React from 'preact'
-import { useEffect, useState } from 'preact/compat'
-import { callAPI } from '../api/util'
-import { echoHandler, EchoProps, EchoURL } from '../server/api'
+import React from 'react'
+import { useEffect } from 'react'
 
 function TitleSection() {
     return (
@@ -77,37 +75,21 @@ function InstructionsSection() {
         </section>
     )
 }
-const Results = ({ results }: { results: string }) => (
-    <label>Results: {results}</label>
-)
 
 interface HomeProps {
     setTitle: (title: string) => void
 }
 
 export const Home = (props: HomeProps) => {
-    const [results, setResults] = useState('')
-
     useEffect(() => {
         props.setTitle('Home')
     }, [props])
-
-    const clickHandler = () => () => {
-        const data = { message: 'hello world' }
-        callAPI<EchoProps, ReturnType<typeof echoHandler>>(EchoURL, data).then(
-            (res) => setResults(res.echo)
-        )
-    }
 
     return (
         <div className="example-container centered-container">
             <TitleSection />
             <DescriptionSection />
             <InstructionsSection />
-            <button onClick={clickHandler()}>Send</button>
-            <p>
-                <Results results={results} />
-            </p>
         </div>
     )
 }

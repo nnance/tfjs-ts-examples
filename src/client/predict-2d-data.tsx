@@ -1,16 +1,17 @@
+import React from 'react'
+import * as tf from '@tensorflow/tfjs'
 import { Container, Grid, Paper } from '@mui/material'
 import Toolbar from '@mui/material/Toolbar'
-import { Fragment } from 'preact'
-import React from 'react'
-import { useEffect } from 'react'
-import { getPredictions } from '../server/api'
 import { VisualizationSpec } from 'vega-embed'
 import { Title } from './components/Title'
 import { scatterPlot } from './components/charts/scatterplot'
 import { Chart } from './components/Chart'
-import { useState } from 'preact/hooks'
-import { loadTrainedModel } from '../models/predict-2d-data'
-import { getData } from '../data/cars'
+import {
+    convertToTensor,
+    loadTrainedModel,
+    testModel,
+} from '../models/predict-2d-data'
+import { CarPerformance, getData } from '../data/cars'
 
 function TitleSection() {
     return (
@@ -40,6 +41,21 @@ type EnrichedPrediction = {
 type EnrichedPredictionResults = {
     originalPoints: EnrichedPrediction[]
     predictedPoints: EnrichedPrediction[]
+}
+
+export function getPredictions(
+    model: tf.LayersModel,
+    originalPoints: CarPerformance[]
+) {
+    const tensorData = convertToTensor(originalPoints)
+    const predications = testModel(model, tensorData)
+
+    const predictedPoints = predications.map((d) => ({
+        horsepower: d.x,
+        mpg: d.y,
+    }))
+
+    return { predictedPoints, originalPoints }
 }
 
 async function getDataWithPredictions() {
@@ -76,13 +92,13 @@ const carPerformanceSpec = (data: EnrichedPredictionResults) => {
 }
 
 export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
-    const [spec, setSpec] = useState<VisualizationSpec>()
+    const [spec, setSpec] = React.useState<VisualizationSpec>()
 
-    useEffect(() => {
+    React.useEffect(() => {
         props.setTitle('Fit To Curve')
     }, [props])
 
-    useEffect(() => {
+    React.useEffect(() => {
         getDataWithPredictions().then((data) => {
             const spec = carPerformanceSpec(data)
             setSpec(spec)
@@ -90,7 +106,7 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
     }, [])
 
     return (
-        <Fragment>
+        <React.Fragment>
             <Toolbar />
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Grid container spacing={3}>
@@ -120,6 +136,6 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
                     </Grid>
                 </Grid>
             </Container>
-        </Fragment>
+        </React.Fragment>
     )
 }
