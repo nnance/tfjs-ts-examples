@@ -31,6 +31,11 @@ const MNIST_IMAGES_SPRITE_PATH =
 const MNIST_LABELS_PATH =
     'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8'
 
+export type Batch = {
+    xs: tf.Tensor2D
+    labels: tf.Tensor2D
+}
+
 /**
  * A class that fetches the sprited MNIST dataset and returns shuffled batches.
  *
@@ -140,9 +145,11 @@ export class MnistData {
         this.testLabels = this.datasetLabels.slice(
             NUM_CLASSES * NUM_TRAIN_ELEMENTS
         )
+
+        return this
     }
 
-    nextTrainBatch(batchSize: number) {
+    nextTrainBatch(batchSize: number): Batch {
         return this.nextBatch(
             batchSize,
             [this.trainImages, this.trainLabels],
@@ -158,7 +165,7 @@ export class MnistData {
         )
     }
 
-    nextTestBatch(batchSize: number) {
+    nextTestBatch(batchSize: number): Batch {
         return this.nextBatch(
             batchSize,
             [this.testImages, this.testLabels],

@@ -91,8 +91,27 @@ export function testModel(
     return predictedPoints
 }
 
-export function loadTrainedModel() {
-    return tf.loadLayersModel(
+export function getPredictions(
+    model: tf.LayersModel,
+    originalPoints: CarPerformance[]
+) {
+    const tensorData = convertToTensor(originalPoints)
+    const predications = testModel(model, tensorData)
+
+    const predictedPoints = predications.map((d) => ({
+        horsepower: d.x,
+        mpg: d.y,
+    }))
+
+    return { predictedPoints, originalPoints }
+}
+
+export async function loadTrainedModel() {
+    const model = await tf.loadLayersModel(
         `http://localhost:8080/models/${fileName}/model.json`
     )
+
+    return {
+        predict: (data: CarPerformance[]) => getPredictions(model, data),
+    }
 }

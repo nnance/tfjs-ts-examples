@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as tf from '@tensorflow/tfjs'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
@@ -11,6 +10,8 @@ import { lineChart } from './charts/linechart'
 import { VisualizationSpec } from 'vega-embed'
 import { Chart } from './Chart'
 import Paper from '@mui/material/Paper'
+import { PredictionResult, PredictionResults } from './PredictionResults'
+import { TrainedModel } from '../../models/recognize-handwriting'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -26,8 +27,9 @@ export type BatchResult = {
 
 interface TabsProps {
     examples: ImageData[]
-    model: tf.LayersModel
+    model: TrainedModel
     batchResults: BatchResult[]
+    predictions: PredictionResult[]
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -58,7 +60,7 @@ function a11yProps(index: number) {
 }
 
 export function HandwritingTabs(props: TabsProps) {
-    const { examples, model, batchResults } = props
+    const { examples, model, batchResults, predictions } = props
     const [value, setValue] = React.useState(0)
     const [spec, setSpec] = React.useState<VisualizationSpec>()
     const [accSpec, setAccSpec] = React.useState<VisualizationSpec>()
@@ -115,6 +117,7 @@ export function HandwritingTabs(props: TabsProps) {
                 {examples.map((tensor, key) => (
                     <TensorImage key={key} imageData={tensor} />
                 ))}
+                <PredictionResults results={predictions} />
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <Paper

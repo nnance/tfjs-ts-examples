@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
+import { Batch, MnistData } from '../data/mnist'
 
 export const fileName = 'recognizeHandwriting'
 
@@ -68,8 +69,171 @@ export function createModel() {
     return model
 }
 
-export function loadTrainedModel() {
-    return tf.loadLayersModel(
+export async function renderExamples(
+    canvas: HTMLCanvasElement,
+    data: MnistData
+) {
+    // Get the examples
+    const examples = data.nextTestBatch(20)
+    const numExamples = examples.xs.shape[0]
+
+    const images: ImageData[] = []
+    for (let i = 0; i < numExamples; i++) {
+        // Create a canvas element to render each example
+
+        const imageTensor = tf.tidy(() => {
+            // Reshape the image to 28x28 px
+            return examples.xs
+                .slice([i, 0], [1, examples.xs.shape[1]])
+                .reshape([28, 28, 1])
+        })
+        await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
+        imageTensor.dispose()
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (ctx) {
+            const imageData = ctx.getImageData(0, 0, 28, 28)
+            if (imageData) images.push(imageData)
+        }
+    }
+    return { examples, images }
+}
+
+const classNames = [
+    'Zero',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+]
+
+function doPrediction(
+    model: tf.LayersModel,
+    testData: Batch,
+    testDataSize = 20
+) {
+    const IMAGE_WIDTH = 28
+    const IMAGE_HEIGHT = 28
+    const testxs = testData.xs.reshape([
+        testDataSize,
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
+        1,
+    ])
+    console.log(`testxs size: ${testxs.size}`)
+    const labels = testData.labels.argMax(-1)
+    console.log(`labels size: ${labels.size}`)
+    console.log('Labels:')
+    labels.print()
+    const rank = model.predict(testxs) as tf.Tensor<tf.Rank>
+    console.log('Ranks:')
+    rank.print()
+
+    testxs.dispose()
+    // TODO: dispose labels?
+
+    return { rank, labels }
+}
+
+function getMaxValues(rank: tf.Tensor<tf.Rank>, classNames: string[]) {
+    const maxValues = rank.argMax(-1)
+    console.log('Max values:')
+    maxValues.print()
+    const maxValuesSync = maxValues.arraySync() as number[][]
+    console.log('Max values sync:')
+    console.dir(maxValuesSync)
+
+    return maxValuesSync.map((value, i) => ({
+        className: classNames[i],
+        value,
+    }))
+}
+
+interface LayerSummary {
+    name: string
+    trainable: boolean
+    parameters: number
+    outputShape: string
+}
+
+function formatShape(shape: number[]): string {
+    const oShape: Array<number | string> = shape.slice()
+    if (oShape.length === 0) {
+        return 'Scalar'
+    }
+    if (oShape[0] === null) {
+        oShape[0] = 'batch'
+    }
+    return `[${oShape.join(',')}]`
+}
+
+/*
+ * Gets summary information/metadata about a layer.
+ */
+function getLayerSummary(layer: tf.layers.Layer): LayerSummary {
+    let outputShape: string
+    if (Array.isArray(layer.outputShape[0])) {
+        const shapes = (layer.outputShape as number[][]).map((s) =>
+            formatShape(s)
+        )
+        outputShape = `[${shapes.join(', ')}]`
+    } else {
+        outputShape = formatShape(layer.outputShape as number[])
+    }
+
+    return {
+        name: layer.name,
+        trainable: layer.trainable,
+        parameters: layer.countParams(),
+        outputShape,
+    }
+}
+
+function getTopKClasses(rank: tf.Tensor<tf.Rank>, classNames: string[]) {
+    const { values, indices } = tf.topk(rank, 3)
+    console.log('Topk values:')
+    values.print()
+    console.log('Topk indices:')
+    indices.print()
+
+    const topKValues = values.arraySync() as number[][]
+    console.log('Topk values sync:')
+    console.dir(topKValues)
+    const topKIndices = indices.arraySync() as number[][]
+    console.log('Topk indices sync:')
+    console.dir(topKIndices)
+
+    return topKValues.map((v, i) => ({
+        className: classNames[topKIndices[i][0]],
+        value: v[0],
+    }))
+}
+
+export type TrainedModel = Awaited<ReturnType<typeof loadTrainedModel>>
+
+export async function loadTrainedModel() {
+    const model = await tf.loadLayersModel(
         `http://localhost:8080/models/${fileName}/model.json`
     )
+
+    return {
+        summary: () => model.layers.map(getLayerSummary),
+        predict: (testData: Batch, testDataSize = 20) => {
+            const { rank } = doPrediction(model, testData, testDataSize)
+            const topK = getTopKClasses(rank, classNames)
+            tf.dispose(rank)
+            return topK
+        },
+        predictWithValues: (testData: Batch, testDataSize = 20) => {
+            const { rank } = doPrediction(model, testData, testDataSize)
+            const maxValues = getMaxValues(rank, classNames)
+            tf.dispose(rank)
+            return maxValues
+        },
+    }
 }

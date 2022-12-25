@@ -1,14 +1,17 @@
 import React from 'react'
-import * as tf from '@tensorflow/tfjs'
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { MnistData } from '../data/mnist'
-import { createModel } from '../models/recognize-handwriting'
+import { Fragment, useEffect, useState } from 'react'
+import { Batch, MnistData } from '../data/mnist'
 import Button from '@mui/material/Button'
 import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import { BatchResult, HandwritingTabs } from './components/HandwritingTabs'
+import {
+    loadTrainedModel,
+    TrainedModel,
+    renderExamples,
+} from '../models/recognize-handwriting'
 
 function TitleSection() {
     return (
@@ -26,34 +29,6 @@ function TitleSection() {
     )
 }
 
-async function getExamples(data: MnistData) {
-    // Get the examples
-    const examples = data.nextTestBatch(20)
-    const numExamples = examples.xs.shape[0]
-
-    const results: ImageData[] = []
-    for (let i = 0; i < numExamples; i++) {
-        // Create a canvas element to render each example
-        const canvas = document.createElement('canvas')
-
-        const imageTensor = tf.tidy(() => {
-            // Reshape the image to 28x28 px
-            return examples.xs
-                .slice([i, 0], [1, examples.xs.shape[1]])
-                .reshape([28, 28, 1])
-        })
-        await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
-        imageTensor.dispose()
-
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })
-        if (ctx) {
-            const imageData = ctx.getImageData(0, 0, 28, 28)
-            if (imageData) results.push(imageData)
-        }
-    }
-    return results
-}
-
 /*
 const classNames = [
     'Zero',
@@ -68,29 +43,8 @@ const classNames = [
     'Nine',
 ]
 
-function doPrediction(
-    model: tf.Sequential,
-    data: MnistData,
-    testDataSize = 500
-) {
-    const IMAGE_WIDTH = 28
-    const IMAGE_HEIGHT = 28
-    const testData = data.nextTestBatch(testDataSize)
-    const testxs = testData.xs.reshape([
-        testDataSize,
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        1,
-    ])
-    const labels = testData.labels.argMax(-1)
-    const preds = (model.predict(testxs) as tf.Tensor<tf.Rank>).argMax(-1)
-
-    testxs.dispose()
-    return [preds, labels] as [tf.Tensor1D, tf.Tensor1D]
-}
-
-async function showAccuracy(model: tf.Sequential, data: MnistData) {
-    const [preds, labels] = doPrediction(model, data)
+async function showAccuracy(model: tf.LayersModel, batch: Batch) {
+    const [preds, labels] = doPrediction(model, batch)
     const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
     const container = { name: 'Accuracy', tab: 'Evaluation' }
     tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
@@ -109,9 +63,8 @@ async function showConfusion(model: tf.Sequential, data: MnistData) {
 
     labels.dispose()
 }
-*/
 
-async function fetchTrainingResults(model: tf.Sequential, data: MnistData) {
+async function fetchTrainingResults(model: tf.LayersModel) {
     const results: BatchResult[] = []
     let currentEpoch = 0
     const batchSize = 11
@@ -132,13 +85,14 @@ async function fetchTrainingResults(model: tf.Sequential, data: MnistData) {
         currentEpoch = epoch + 1
     }
 
-    // await trainModel(model, data, 512, 5500, 1000, {
-    //     onBatchEnd,
-    //     onEpochEnd,
-    // })
+    await trainModel(model, data, 512, 5500, 1000, {
+        onBatchEnd,
+        onEpochEnd,
+    })
 
     return results
 }
+*/
 
 export const RecognizeHandwriting = (props: {
     setTitle: (title: string) => void
@@ -147,42 +101,44 @@ export const RecognizeHandwriting = (props: {
         props.setTitle('Recognize handwriting')
     }, [props])
 
-    const dataRef = useRef(new MnistData())
-    const modelRef = useRef(createModel())
-
-    const [runTraining, setTraining] = useState(false)
-    const [examples, setExamples] = useState<ImageData[]>([])
+    const [model, setModel] = useState<TrainedModel>()
+    const [runTest, setTest] = useState(false)
+    const [images, setImages] = useState<ImageData[]>([])
+    const [examples, setExamples] = useState<Batch>()
     const [batchResults, setBatchResults] = useState<BatchResult[]>([])
 
     useEffect(() => {
+        const canvas = document.createElement('canvas')
+
         async function run() {
-            const data = dataRef.current
+            const data = new MnistData()
             await data.load()
-            const examples = await getExamples(data)
-            setExamples([...examples])
+            const { images, examples } = await renderExamples(canvas, data)
+            setImages([...images])
+            setExamples(examples)
         }
         run()
-    }, [dataRef, setExamples])
+    }, [])
+
+    useEffect(() => {
+        loadTrainedModel().then(setModel)
+    }, [])
 
     useEffect(() => {
         async function run() {
-            const trainingResults = await fetchTrainingResults(
-                modelRef.current,
-                dataRef.current
-            )
-            setBatchResults(trainingResults)
-            setTraining(false)
+            // const trainingResults = await fetchTrainingResults(model)
+            // setBatchResults(trainingResults)
+            setTest(false)
 
             // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
-
-            // await showAccuracy(model, data)
+            // await showAccuracy(model, examples as Batch)
             // await showConfusion(model, data)
         }
 
-        if (runTraining) {
+        if (runTest) {
             run()
         }
-    }, [runTraining, modelRef, dataRef, setBatchResults, setTraining])
+    }, [runTest, model, setBatchResults, setTest, examples])
 
     return (
         <Fragment>
@@ -201,10 +157,10 @@ export const RecognizeHandwriting = (props: {
                             <Button
                                 variant="contained"
                                 fullWidth={false}
-                                onClick={() => setTraining(true)}
-                                disabled={runTraining}
+                                onClick={() => setTest(true)}
+                                disabled={runTest}
                             >
-                                {runTraining ? 'Training...' : 'Train Model'}
+                                {runTest ? 'Training...' : 'Test Model'}
                             </Button>
                         </Paper>
                     </Grid>
@@ -217,11 +173,14 @@ export const RecognizeHandwriting = (props: {
                                 minHeight: 360,
                             }}
                         >
-                            <HandwritingTabs
-                                examples={examples}
-                                model={modelRef.current}
-                                batchResults={batchResults}
-                            />
+                            {model && (
+                                <HandwritingTabs
+                                    examples={images}
+                                    model={model}
+                                    batchResults={batchResults}
+                                    predictions={[]}
+                                />
+                            )}
                         </Paper>
                     </Grid>
                 </Grid>

@@ -1,17 +1,12 @@
 import React from 'react'
-import * as tf from '@tensorflow/tfjs'
 import { Container, Grid, Paper } from '@mui/material'
 import Toolbar from '@mui/material/Toolbar'
 import { VisualizationSpec } from 'vega-embed'
 import { Title } from './components/Title'
 import { scatterPlot } from './components/charts/scatterplot'
 import { Chart } from './components/Chart'
-import {
-    convertToTensor,
-    loadTrainedModel,
-    testModel,
-} from '../models/predict-2d-data'
-import { CarPerformance, getData } from '../data/cars'
+import { loadTrainedModel } from '../models/predict-2d-data'
+import { getData } from '../data/cars'
 
 function TitleSection() {
     return (
@@ -43,25 +38,10 @@ type EnrichedPredictionResults = {
     predictedPoints: EnrichedPrediction[]
 }
 
-export function getPredictions(
-    model: tf.LayersModel,
-    originalPoints: CarPerformance[]
-) {
-    const tensorData = convertToTensor(originalPoints)
-    const predications = testModel(model, tensorData)
-
-    const predictedPoints = predications.map((d) => ({
-        horsepower: d.x,
-        mpg: d.y,
-    }))
-
-    return { predictedPoints, originalPoints }
-}
-
 async function getDataWithPredictions() {
     const model = await loadTrainedModel()
     const data = await getData()
-    const predictions = getPredictions(model, data)
+    const predictions = model.predict(data)
 
     const originalPoints = predictions.originalPoints.map<EnrichedPrediction>(
         (d) => {
