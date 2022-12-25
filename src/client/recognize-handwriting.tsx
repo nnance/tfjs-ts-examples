@@ -11,6 +11,7 @@ import {
     loadTrainedModel,
     TrainedModel,
     renderExamples,
+    PredictionResults,
 } from '../models/recognize-handwriting'
 
 function TitleSection() {
@@ -106,6 +107,8 @@ export const RecognizeHandwriting = (props: {
     const [images, setImages] = useState<ImageData[]>([])
     const [examples, setExamples] = useState<Batch>()
     const [batchResults, setBatchResults] = useState<BatchResult[]>([])
+    const [predictionResults, setPredictionResults] =
+        useState<PredictionResults>()
 
     useEffect(() => {
         const canvas = document.createElement('canvas')
@@ -128,6 +131,10 @@ export const RecognizeHandwriting = (props: {
         async function run() {
             // const trainingResults = await fetchTrainingResults(model)
             // setBatchResults(trainingResults)
+            if (!model || !examples) return
+
+            const results = model.predict(examples)
+            setPredictionResults(results)
             setTest(false)
 
             // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
@@ -138,7 +145,7 @@ export const RecognizeHandwriting = (props: {
         if (runTest) {
             run()
         }
-    }, [runTest, model, setBatchResults, setTest, examples])
+    }, [runTest, model, examples, setTest, setBatchResults])
 
     return (
         <Fragment>
@@ -173,14 +180,12 @@ export const RecognizeHandwriting = (props: {
                                 minHeight: 360,
                             }}
                         >
-                            {model && (
-                                <HandwritingTabs
-                                    examples={images}
-                                    model={model}
-                                    batchResults={batchResults}
-                                    predictions={[]}
-                                />
-                            )}
+                            <HandwritingTabs
+                                examples={images}
+                                model={model}
+                                batchResults={batchResults}
+                                predictions={predictionResults}
+                            />
                         </Paper>
                     </Grid>
                 </Grid>

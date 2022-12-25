@@ -10,8 +10,11 @@ import { lineChart } from './charts/linechart'
 import { VisualizationSpec } from 'vega-embed'
 import { Chart } from './Chart'
 import Paper from '@mui/material/Paper'
-import { PredictionResult, PredictionResults } from './PredictionResults'
-import { TrainedModel } from '../../models/recognize-handwriting'
+import { PredictionTable } from './PredictionTable'
+import {
+    PredictionResults,
+    TrainedModel,
+} from '../../models/recognize-handwriting'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -27,9 +30,9 @@ export type BatchResult = {
 
 interface TabsProps {
     examples: ImageData[]
-    model: TrainedModel
+    model: TrainedModel | undefined
     batchResults: BatchResult[]
-    predictions: PredictionResult[]
+    predictions: PredictionResults | undefined
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -117,7 +120,12 @@ export function HandwritingTabs(props: TabsProps) {
                 {examples.map((tensor, key) => (
                     <TensorImage key={key} imageData={tensor} />
                 ))}
-                <PredictionResults results={predictions} />
+                {predictions && (
+                    <React.Fragment>
+                        <Title>Predictions</Title>
+                        <PredictionTable results={predictions} />
+                    </React.Fragment>
+                )}
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <Paper
@@ -127,8 +135,12 @@ export function HandwritingTabs(props: TabsProps) {
                         flexDirection: 'column',
                     }}
                 >
-                    <Title>Model Summary</Title>
-                    <ModelSummary model={model} />
+                    {model && (
+                        <React.Fragment>
+                            <Title>Model Summary</Title>
+                            <ModelSummary model={model} />
+                        </React.Fragment>
+                    )}
                 </Paper>
                 {batchResults.length > 0 && (
                     <Paper

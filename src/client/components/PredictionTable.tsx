@@ -8,17 +8,13 @@ import {
     TableHead,
     TableRow,
 } from '@mui/material'
-
-export type PredictionResult = {
-    className: string
-    value: number
-}
+import { PredictionResults } from '../../models/recognize-handwriting'
 
 type PredictionResultsProps = {
-    results: PredictionResult[]
+    results: PredictionResults
 }
 
-export function PredictionResults(props: PredictionResultsProps) {
+export function PredictionTable(props: PredictionResultsProps) {
     const { results } = props
     const cols = ['Class', 'Score']
 
