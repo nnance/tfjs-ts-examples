@@ -23,11 +23,12 @@ export function TensorImage(props: TensorImageProps) {
         render()
     }, [canvasRef, props])
 
-    const element = React.createElement('canvas', {
-        width: 28,
-        height: 28,
-        style: { margin: '4px;' },
-        ref: canvasRef,
-    })
-    return element
+    return (
+        <canvas
+            width={28}
+            height={28}
+            style={{ margin: '4px;' }}
+            ref={canvasRef}
+        ></canvas>
+    )
 }

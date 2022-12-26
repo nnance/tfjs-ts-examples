@@ -4,13 +4,9 @@ import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { PredictionTab } from './handwriting/PredictionTab'
-import {
-    renderExamples,
-    TrainedModel,
-} from '../../models/recognize-handwriting'
+import { TrainedModel } from '../../models/recognize-handwriting'
 import { InputTab } from './handwriting/InputTab'
 import { ModelTab } from './handwriting/ModelTab'
-import { useEffect } from 'react'
 import { Batch } from '../../data/mnist'
 
 interface TabPanelProps {
@@ -58,13 +54,6 @@ export function HandwritingTabs(props: TabsProps) {
     const { testData, model } = props
     const [value, setValue] = React.useState(0)
 
-    const [images, setImages] = React.useState<ImageData[]>([])
-
-    useEffect(() => {
-        if (!testData) return
-        renderExamples(testData).then(setImages)
-    }, [testData, setImages])
-
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
@@ -83,19 +72,15 @@ export function HandwritingTabs(props: TabsProps) {
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
-                <InputTab examples={images} />
+                <InputTab testData={testData} />
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <ModelTab model={model} />
             </TabPanel>
             <TabPanel value={value} index={2}>
-                {testData && model && images && (
+                {testData && model && (
                     <React.Fragment>
-                        <PredictionTab
-                            model={model}
-                            testData={testData}
-                            examples={images}
-                        />
+                        <PredictionTab model={model} testData={testData} />
                     </React.Fragment>
                 )}
             </TabPanel>

@@ -8,6 +8,7 @@ import {
     TableRow,
 } from '@mui/material'
 import {
+    getImagesFromTensors,
     PredictionResults,
     TrainedModel,
 } from '../../../models/recognize-handwriting'
@@ -18,7 +19,6 @@ import { Batch } from '../../../data/mnist'
 
 type PredictionResultsProps = {
     model: TrainedModel
-    examples: ImageData[]
     testData: Batch
 }
 
@@ -57,37 +57,40 @@ function isImageData(data: ImageData | string[] | string): data is ImageData {
 }
 
 export function PredictionTab(props: PredictionResultsProps) {
-    const { model, testData, examples } = props
+    const { model, testData } = props
 
-    const [predictionResults, setPredictionResults] =
-        useState<PredictionResults>()
+    const [results, setResults] = useState<PredictionResults>()
+    const [examples, setExamples] = useState<ImageData[]>([])
 
     useEffect(() => {
         if (!model || !testData) return
         const results = model.predict(testData)
-        setPredictionResults(results)
+        setResults(results)
     }, [model, testData])
+
+    React.useEffect(() => {
+        if (!testData) return
+        getImagesFromTensors(testData).then(setExamples)
+    }, [testData])
 
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableBody>
-                    {predictionResults &&
-                        verticalTable(examples, predictionResults).map(
-                            (row, key) => (
-                                <TableRow key={key}>
-                                    {row.map((col, key) => (
-                                        <TableCell key={key}>
-                                            {isImageData(col) ? (
-                                                <TensorImage imageData={col} />
-                                            ) : (
-                                                col
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            )
-                        )}
+                    {results &&
+                        verticalTable(examples, results).map((row, key) => (
+                            <TableRow key={key}>
+                                {row.map((col, key) => (
+                                    <TableCell key={key}>
+                                        {isImageData(col) ? (
+                                            <TensorImage imageData={col} />
+                                        ) : (
+                                            col
+                                        )}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
                 </TableBody>
             </Table>
         </TableContainer>
