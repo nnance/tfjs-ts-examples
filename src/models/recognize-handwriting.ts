@@ -70,7 +70,7 @@ export function createModel() {
 }
 
 // get an image by index from the test data set as ImageData
-export async function getImageData(index: number, testData: Batch) {
+async function getImageData(index: number, testData: Batch) {
     const imageTensor = tf.tidy(() => {
         // Reshape the image to 28x28 px
         return testData.xs
@@ -83,14 +83,14 @@ export async function getImageData(index: number, testData: Batch) {
 }
 
 // get image count from the test data set
-export function getImageCount(testData: Batch) {
+function getImageCount(testData: Batch) {
     return testData.xs.shape[0]
 }
 
 export async function getImagesFromTensors(examples: Batch) {
     const images: ImageData[] = []
 
-    const numExamples = examples.xs.shape[0]
+    const numExamples = getImageCount(examples)
     for (let i = 0; i < numExamples; i++) {
         const image = await getImageData(i, examples)
         images.push(image)

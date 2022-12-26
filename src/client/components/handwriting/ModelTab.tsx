@@ -14,7 +14,7 @@ export type BatchResult = {
 }
 
 interface ModelTabProps {
-    model: TrainedModel | undefined
+    model?: TrainedModel
 }
 
 export function ModelTab(props: ModelTabProps) {

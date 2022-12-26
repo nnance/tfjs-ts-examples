@@ -45,10 +45,10 @@ export type Batch = {
 export class MnistData {
     shuffledTrainIndex: number
     shuffledTestIndex: number
-    datasetImages: Float32Array | undefined
-    datasetLabels: Uint8Array | undefined
-    trainIndices: Uint32Array | undefined
-    testIndices: Uint32Array | undefined
+    datasetImages?: Float32Array
+    datasetLabels?: Uint8Array
+    trainIndices?: Uint32Array
+    testIndices?: Uint32Array
     trainImages: Float32Array
     testImages: Float32Array
     trainLabels: Uint8Array

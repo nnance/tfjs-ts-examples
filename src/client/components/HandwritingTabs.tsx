@@ -16,8 +16,8 @@ interface TabPanelProps {
 }
 
 interface TabsProps {
-    model: TrainedModel | undefined
-    testData: Batch | undefined
+    model?: TrainedModel
+    testData?: Batch
 }
 
 function TabPanel(props: TabPanelProps) {

@@ -4,7 +4,7 @@ import { getImagesFromTensors } from '../../../models/recognize-handwriting'
 import { TensorImage } from '../TensorImage'
 
 type InputTabProps = {
-    testData: Batch | undefined
+    testData?: Batch
 }
 
 export function InputTab(props: InputTabProps) {

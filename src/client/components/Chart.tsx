@@ -4,7 +4,11 @@ import { useRef } from 'react'
 import { useEffect } from 'preact/compat'
 import vegaEmbed from 'vega-embed'
 
-export function Chart({ spec }: { spec: VisualizationSpec | undefined }) {
+type ChartProps = {
+    spec?: VisualizationSpec
+}
+
+export function Chart({ spec }: ChartProps) {
     const divRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
