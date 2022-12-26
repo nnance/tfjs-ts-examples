@@ -104,7 +104,6 @@ export function HandwritingTabs(props: TabsProps) {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Title>Input Data Examples</Title>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                     value={value}
@@ -113,19 +112,13 @@ export function HandwritingTabs(props: TabsProps) {
                 >
                     <Tab label="Input Data" {...a11yProps(0)} />
                     <Tab label="Model" {...a11yProps(1)} />
-                    <Tab label="Item Three" {...a11yProps(2)} />
+                    <Tab label="Test Results" {...a11yProps(2)} />
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
                 {examples.map((tensor, key) => (
                     <TensorImage key={key} imageData={tensor} />
                 ))}
-                {predictions && (
-                    <React.Fragment>
-                        <Title>Predictions</Title>
-                        <PredictionTable results={predictions} />
-                    </React.Fragment>
-                )}
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <Paper
@@ -148,7 +141,6 @@ export function HandwritingTabs(props: TabsProps) {
                             p: 2,
                             display: 'flex',
                             flexDirection: 'column',
-                            height: 700,
                         }}
                     >
                         <Title>onBatchEnd</Title>
@@ -157,7 +149,16 @@ export function HandwritingTabs(props: TabsProps) {
                     </Paper>
                 )}
             </TabPanel>
-            <TabPanel value={value} index={2}></TabPanel>
+            <TabPanel value={value} index={2}>
+                {predictions && (
+                    <React.Fragment>
+                        <PredictionTable
+                            examples={examples}
+                            results={predictions}
+                        />
+                    </React.Fragment>
+                )}
+            </TabPanel>
         </Box>
     )
 }

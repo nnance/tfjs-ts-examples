@@ -128,7 +128,6 @@ function doPrediction(
     const rank = model.predict(testxs) as tf.Tensor<tf.Rank>
 
     testxs.dispose()
-    // TODO: dispose labels?
 
     return rank
 }
@@ -188,10 +187,12 @@ function getTopKClasses(rank: tf.Tensor<tf.Rank>, classNames: string[]) {
     const topKValues = values.arraySync() as number[][]
     const topKIndices = indices.arraySync() as number[][]
 
-    return topKValues.map((v, i) => ({
-        className: classNames[topKIndices[i][0]],
-        value: v[0],
-    }))
+    return topKValues.map((v, i) =>
+        v.map((value, ii) => ({
+            className: classNames[topKIndices[i][ii]],
+            value,
+        }))
+    )
 }
 
 export type PredictionResults = ReturnType<typeof predict>
@@ -201,6 +202,17 @@ const predict = (model: tf.LayersModel, testData: Batch, testDataSize = 20) => {
     const topK = getTopKClasses(rank, classNames)
     tf.dispose(rank)
     return topK
+}
+
+const predictWithValues = (
+    model: tf.LayersModel,
+    testData: Batch,
+    testDataSize = 20
+) => {
+    const rank = doPrediction(model, testData, testDataSize)
+    const maxValues = getMaxValues(rank, classNames)
+    tf.dispose(rank)
+    return maxValues
 }
 
 export type TrainedModel = Awaited<ReturnType<typeof loadTrainedModel>>
@@ -214,11 +226,7 @@ export async function loadTrainedModel() {
         summary: () => model.layers.map(getLayerSummary),
         predict: (testData: Batch, testDataSize = 20) =>
             predict(model, testData, testDataSize),
-        predictWithValues: (testData: Batch, testDataSize = 20) => {
-            const rank = doPrediction(model, testData, testDataSize)
-            const maxValues = getMaxValues(rank, classNames)
-            tf.dispose(rank)
-            return maxValues
-        },
+        predictWithValues: (testData: Batch, testDataSize = 20) =>
+            predictWithValues(model, testData, testDataSize),
     }
 }
