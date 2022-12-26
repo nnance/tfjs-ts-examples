@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import { Batch, MnistData } from '../data/mnist'
+import { Batch } from '../data/mnist'
 
 export const fileName = 'recognizeHandwriting'
 
@@ -69,15 +69,10 @@ export function createModel() {
     return model
 }
 
-export async function renderExamples(
-    canvas: HTMLCanvasElement,
-    data: MnistData
-) {
-    // Get the examples
-    const examples = data.nextTestBatch(20)
-    const numExamples = examples.xs.shape[0]
-
+export async function renderExamples(examples: Batch) {
     const images: ImageData[] = []
+
+    const numExamples = examples.xs.shape[0]
     for (let i = 0; i < numExamples; i++) {
         // Create a canvas element to render each example
 
@@ -87,16 +82,11 @@ export async function renderExamples(
                 .slice([i, 0], [1, examples.xs.shape[1]])
                 .reshape([28, 28, 1])
         })
-        await tf.browser.toPixels(imageTensor as tf.Tensor2D, canvas)
+        const imageData = await tf.browser.toPixels(imageTensor as tf.Tensor2D)
         imageTensor.dispose()
-
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })
-        if (ctx) {
-            const imageData = ctx.getImageData(0, 0, 28, 28)
-            if (imageData) images.push(imageData)
-        }
+        images.push(new ImageData(imageData, 28, 28))
     }
-    return { examples, images }
+    return images
 }
 
 const classNames = [

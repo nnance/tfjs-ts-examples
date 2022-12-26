@@ -14,6 +14,9 @@ function saveModel(model: tf.Sequential, path: string, fileName: string) {
     return model.save(`file://${path}/${fileName}`)
 }
 
+// TODO: save training history and other metrics to a file
+// TODO: serve the training history and other metrics to the client
+
 export async function trainHandwriting(
     epochs = 20,
     batchSize = 128,

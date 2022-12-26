@@ -6,13 +6,8 @@ import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { BatchResult, HandwritingTabs } from './components/HandwritingTabs'
-import {
-    loadTrainedModel,
-    TrainedModel,
-    renderExamples,
-    PredictionResults,
-} from '../models/recognize-handwriting'
+import { HandwritingTabs } from './components/HandwritingTabs'
+import { loadTrainedModel, TrainedModel } from '../models/recognize-handwriting'
 
 function TitleSection() {
     return (
@@ -95,6 +90,9 @@ async function fetchTrainingResults(model: tf.LayersModel) {
 }
 */
 
+// TODO: create tabs in this component and push them to the generic Tabs component
+// TODO: load the model training results and display them in the tabs
+
 export const RecognizeHandwriting = (props: {
     setTitle: (title: string) => void
 }) => {
@@ -103,24 +101,16 @@ export const RecognizeHandwriting = (props: {
     }, [props])
 
     const [model, setModel] = useState<TrainedModel>()
+    // TODO: push test state into the HandwritingTabs component
     const [runTest, setTest] = useState(false)
-    const [images, setImages] = useState<ImageData[]>([])
     const [examples, setExamples] = useState<Batch>()
-    const [batchResults, setBatchResults] = useState<BatchResult[]>([])
-    const [predictionResults, setPredictionResults] =
-        useState<PredictionResults>()
 
     useEffect(() => {
-        const canvas = document.createElement('canvas')
-
-        async function run() {
-            const data = new MnistData()
-            await data.load()
-            const { images, examples } = await renderExamples(canvas, data)
-            setImages([...images])
+        const data = new MnistData()
+        data.load().then(() => {
+            const examples = data.nextTestBatch(20)
             setExamples(examples)
-        }
-        run()
+        })
     }, [])
 
     useEffect(() => {
@@ -131,12 +121,7 @@ export const RecognizeHandwriting = (props: {
         async function run() {
             // const trainingResults = await fetchTrainingResults(model)
             // setBatchResults(trainingResults)
-            if (!model || !examples) return
-
-            const results = model.predict(examples)
-            setPredictionResults(results)
-            setTest(false)
-
+            // setTest(false)
             // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
             // await showAccuracy(model, examples as Batch)
             // await showConfusion(model, data)
@@ -145,7 +130,7 @@ export const RecognizeHandwriting = (props: {
         if (runTest) {
             run()
         }
-    }, [runTest, model, examples, setTest, setBatchResults])
+    }, [runTest, model, examples, setTest])
 
     return (
         <Fragment>
@@ -181,10 +166,8 @@ export const RecognizeHandwriting = (props: {
                             }}
                         >
                             <HandwritingTabs
-                                examples={images}
+                                testData={examples}
                                 model={model}
-                                batchResults={batchResults}
-                                predictions={predictionResults}
                             />
                         </Paper>
                     </Grid>

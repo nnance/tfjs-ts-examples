@@ -4,6 +4,9 @@ import zlib from 'zlib'
 import assert from 'assert'
 import * as tf from '@tensorflow/tfjs-node-gpu'
 
+//TODO: This is a hack to get the mnist data to work with tfjs-node-gpu
+//      Remove this once the issue is fixed.
+
 // MNIST data constants:
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/'
 const IMAGE_PATH = './.cache/'

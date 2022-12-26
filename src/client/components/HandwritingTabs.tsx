@@ -3,18 +3,15 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { Title } from './Title'
-import { ModelSummary } from './ModelSummary'
-import { TensorImage } from './TensorImage'
-import { lineChart } from './charts/linechart'
-import { VisualizationSpec } from 'vega-embed'
-import { Chart } from './Chart'
-import Paper from '@mui/material/Paper'
-import { PredictionTable } from './PredictionTable'
+import { PredictionTab } from './handwriting/PredictionTab'
 import {
-    PredictionResults,
+    renderExamples,
     TrainedModel,
 } from '../../models/recognize-handwriting'
+import { InputTab } from './handwriting/InputTab'
+import { ModelTab } from './handwriting/ModelTab'
+import { useEffect } from 'react'
+import { Batch } from '../../data/mnist'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -22,17 +19,9 @@ interface TabPanelProps {
     value: number
 }
 
-export type BatchResult = {
-    batchNumber: number
-    acc: number
-    loss: number
-}
-
 interface TabsProps {
-    examples: ImageData[]
     model: TrainedModel | undefined
-    batchResults: BatchResult[]
-    predictions: PredictionResults | undefined
+    testData: Batch | undefined
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -62,45 +51,23 @@ function a11yProps(index: number) {
     }
 }
 
+// TODO: Make this a generic component with dynamic tabs
+// TODO: remove the model and testData props
+
 export function HandwritingTabs(props: TabsProps) {
-    const { examples, model, batchResults, predictions } = props
+    const { testData, model } = props
     const [value, setValue] = React.useState(0)
-    const [spec, setSpec] = React.useState<VisualizationSpec>()
-    const [accSpec, setAccSpec] = React.useState<VisualizationSpec>()
+
+    const [images, setImages] = React.useState<ImageData[]>([])
+
+    useEffect(() => {
+        if (!testData) return
+        renderExamples(testData).then(setImages)
+    }, [testData, setImages])
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue)
     }
-
-    React.useEffect(() => {
-        const values = batchResults.map((batch) => ({
-            x: batch.batchNumber,
-            y: batch.loss,
-        }))
-        const series = ['loss']
-        const data = { values, series }
-        setSpec(
-            lineChart(data, {
-                xLabel: 'Batch',
-                yLabel: 'Value',
-            })
-        )
-    }, [batchResults, setSpec])
-
-    React.useEffect(() => {
-        const values = batchResults.map((batch) => ({
-            x: batch.batchNumber,
-            y: batch.acc,
-        }))
-        const series = ['acc']
-        const data = { values, series }
-        setAccSpec(
-            lineChart(data, {
-                xLabel: 'Batch',
-                yLabel: 'Value',
-            })
-        )
-    }, [batchResults, setAccSpec])
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -116,45 +83,18 @@ export function HandwritingTabs(props: TabsProps) {
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
-                {examples.map((tensor, key) => (
-                    <TensorImage key={key} imageData={tensor} />
-                ))}
+                <InputTab examples={images} />
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
-                    {model && (
-                        <React.Fragment>
-                            <Title>Model Summary</Title>
-                            <ModelSummary model={model} />
-                        </React.Fragment>
-                    )}
-                </Paper>
-                {batchResults.length > 0 && (
-                    <Paper
-                        sx={{
-                            p: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                        }}
-                    >
-                        <Title>onBatchEnd</Title>
-                        <Chart spec={spec} />
-                        <Chart spec={accSpec} />
-                    </Paper>
-                )}
+                <ModelTab model={model} />
             </TabPanel>
             <TabPanel value={value} index={2}>
-                {predictions && (
+                {testData && model && images && (
                     <React.Fragment>
-                        <PredictionTable
-                            examples={examples}
-                            results={predictions}
+                        <PredictionTab
+                            model={model}
+                            testData={testData}
+                            examples={images}
                         />
                     </React.Fragment>
                 )}
