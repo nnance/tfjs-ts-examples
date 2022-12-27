@@ -7,7 +7,11 @@ import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import { TabContainer } from './components/TabContainer'
-import { loadTrainedModel, TrainedModel } from '../models/recognize-handwriting'
+import {
+    loadTrainedModel,
+    PredictionResults,
+    TrainedModel,
+} from '../models/recognize-handwriting'
 import { InputTab } from './components/handwriting/InputTab'
 import { ModelTab } from './components/handwriting/ModelTab'
 import { PredictionTab } from './components/handwriting/PredictionTab'
@@ -103,15 +107,15 @@ export const RecognizeHandwriting = (props: {
     }, [props])
 
     const [model, setModel] = useState<TrainedModel>()
-    // TODO: push test state into the HandwritingTabs component
-    const [runTest, setTest] = useState(false)
-    const [examples, setExamples] = useState<Batch>()
+    const [runEvaluation, setRunEvaluation] = useState(false)
+    const [testData, setTestData] = useState<Batch>()
+    const [results, setResults] = useState<PredictionResults>()
 
     useEffect(() => {
         const data = new MnistData()
         data.load().then(() => {
             const examples = data.nextTestBatch(20)
-            setExamples(examples)
+            setTestData(examples)
         })
     }, [])
 
@@ -120,36 +124,18 @@ export const RecognizeHandwriting = (props: {
     }, [])
 
     useEffect(() => {
-        async function run() {
-            // const trainingResults = await fetchTrainingResults(model)
-            // setBatchResults(trainingResults)
-            // setTest(false)
-            // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
-            // await showAccuracy(model, examples as Batch)
-            // await showConfusion(model, data)
-        }
+        if (!model || !testData || !runEvaluation) return
+        const results = model.predict(testData)
+        setResults(results)
+        setRunEvaluation(false)
+    }, [runEvaluation, model, testData])
 
-        if (runTest) {
-            run()
-        }
-    }, [runTest, model, examples, setTest])
-
-    const tabs = [
-        {
-            label: 'Input',
-            component: () => <InputTab testData={examples} />,
-        },
-        {
-            label: 'Model',
-            component: () => <ModelTab model={model} />,
-        },
-        {
-            label: 'Evaluation',
-            component: () => (
-                <PredictionTab model={model} testData={examples} />
-            ),
-        },
-    ]
+    // const trainingResults = await fetchTrainingResults(model)
+    // setBatchResults(trainingResults)
+    // setTest(false)
+    // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
+    // await showAccuracy(model, examples as Batch)
+    // await showConfusion(model, data)
 
     return (
         <Fragment>
@@ -168,10 +154,12 @@ export const RecognizeHandwriting = (props: {
                             <Button
                                 variant="contained"
                                 fullWidth={false}
-                                onClick={() => setTest(true)}
-                                disabled={runTest}
+                                onClick={() => setRunEvaluation(true)}
+                                disabled={runEvaluation}
                             >
-                                {runTest ? 'Training...' : 'Test Model'}
+                                {runEvaluation
+                                    ? 'Training...'
+                                    : 'Evaluate Model'}
                             </Button>
                         </Paper>
                     </Grid>
@@ -184,7 +172,31 @@ export const RecognizeHandwriting = (props: {
                                 minHeight: 360,
                             }}
                         >
-                            <TabContainer tabs={tabs} />
+                            <TabContainer
+                                tabs={[
+                                    {
+                                        label: 'Input',
+                                        component: () => (
+                                            <InputTab testData={testData} />
+                                        ),
+                                    },
+                                    {
+                                        label: 'Model',
+                                        component: () => (
+                                            <ModelTab model={model} />
+                                        ),
+                                    },
+                                    {
+                                        label: 'Evaluation',
+                                        component: () => (
+                                            <PredictionTab
+                                                testData={testData}
+                                                results={results}
+                                            />
+                                        ),
+                                    },
+                                ]}
+                            />
                         </Paper>
                     </Grid>
                 </Grid>

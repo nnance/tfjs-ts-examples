@@ -18,8 +18,8 @@ import { useEffect } from 'preact/hooks'
 import { Batch } from '../../../data/mnist'
 
 type PredictionResultsProps = {
-    model?: TrainedModel
     testData?: Batch
+    results?: PredictionResults
 }
 
 const cols = ['Image', 'Prediction', 'Confidence']
@@ -57,18 +57,11 @@ function isImageData(data: ImageData | string[] | string): data is ImageData {
 }
 
 export function PredictionTab(props: PredictionResultsProps) {
-    const { model, testData } = props
+    const { testData, results } = props
 
-    const [results, setResults] = useState<PredictionResults>()
     const [examples, setExamples] = useState<ImageData[]>([])
 
     useEffect(() => {
-        if (!model || !testData) return
-        const results = model.predict(testData)
-        setResults(results)
-    }, [model, testData])
-
-    React.useEffect(() => {
         if (!testData) return
         getImagesFromTensors(testData).then(setExamples)
     }, [testData])
