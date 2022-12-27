@@ -18,8 +18,8 @@ import { useEffect } from 'preact/hooks'
 import { Batch } from '../../../data/mnist'
 
 type PredictionResultsProps = {
-    model: TrainedModel
-    testData: Batch
+    model?: TrainedModel
+    testData?: Batch
 }
 
 const cols = ['Image', 'Prediction', 'Confidence']

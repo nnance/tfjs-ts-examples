@@ -6,8 +6,11 @@ import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
-import { HandwritingTabs } from './components/HandwritingTabs'
+import { TabContainer } from './components/TabContainer'
 import { loadTrainedModel, TrainedModel } from '../models/recognize-handwriting'
+import { InputTab } from './components/handwriting/InputTab'
+import { ModelTab } from './components/handwriting/ModelTab'
+import { PredictionTab } from './components/handwriting/PredictionTab'
 
 function TitleSection() {
     return (
@@ -90,7 +93,6 @@ async function fetchTrainingResults(model: tf.LayersModel) {
 }
 */
 
-// TODO: create tabs in this component and push them to the generic Tabs component
 // TODO: load the model training results and display them in the tabs
 
 export const RecognizeHandwriting = (props: {
@@ -132,6 +134,23 @@ export const RecognizeHandwriting = (props: {
         }
     }, [runTest, model, examples, setTest])
 
+    const tabs = [
+        {
+            label: 'Input',
+            component: () => <InputTab testData={examples} />,
+        },
+        {
+            label: 'Model',
+            component: () => <ModelTab model={model} />,
+        },
+        {
+            label: 'Evaluation',
+            component: () => (
+                <PredictionTab model={model} testData={examples} />
+            ),
+        },
+    ]
+
     return (
         <Fragment>
             <Toolbar />
@@ -165,10 +184,7 @@ export const RecognizeHandwriting = (props: {
                                 minHeight: 360,
                             }}
                         >
-                            <HandwritingTabs
-                                testData={examples}
-                                model={model}
-                            />
+                            <TabContainer tabs={tabs} />
                         </Paper>
                     </Grid>
                 </Grid>

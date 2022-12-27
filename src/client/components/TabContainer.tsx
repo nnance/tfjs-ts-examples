@@ -1,13 +1,8 @@
-import * as React from 'react'
+import React, { FunctionComponent } from 'react'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { PredictionTab } from './handwriting/PredictionTab'
-import { TrainedModel } from '../../models/recognize-handwriting'
-import { InputTab } from './handwriting/InputTab'
-import { ModelTab } from './handwriting/ModelTab'
-import { Batch } from '../../data/mnist'
 
 interface TabPanelProps {
     children?: React.ReactNode
@@ -16,8 +11,10 @@ interface TabPanelProps {
 }
 
 interface TabsProps {
-    model?: TrainedModel
-    testData?: Batch
+    tabs: {
+        label: string
+        component: FunctionComponent
+    }[]
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -47,11 +44,7 @@ function a11yProps(index: number) {
     }
 }
 
-// TODO: Make this a generic component with dynamic tabs
-// TODO: remove the model and testData props
-
-export function HandwritingTabs(props: TabsProps) {
-    const { testData, model } = props
+export function TabContainer(props: TabsProps) {
     const [value, setValue] = React.useState(0)
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -66,24 +59,20 @@ export function HandwritingTabs(props: TabsProps) {
                     onChange={handleChange}
                     aria-label="basic tabs example"
                 >
-                    <Tab label="Input Data" {...a11yProps(0)} />
-                    <Tab label="Model" {...a11yProps(1)} />
-                    <Tab label="Test Results" {...a11yProps(2)} />
+                    {props.tabs.map((tab, index) => (
+                        <Tab
+                            label={tab.label}
+                            key={index}
+                            {...a11yProps(index)}
+                        />
+                    ))}
                 </Tabs>
             </Box>
-            <TabPanel value={value} index={0}>
-                <InputTab testData={testData} />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-                <ModelTab model={model} />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-                {testData && model && (
-                    <React.Fragment>
-                        <PredictionTab model={model} testData={testData} />
-                    </React.Fragment>
-                )}
-            </TabPanel>
+            {props.tabs.map((tab, index) => (
+                <TabPanel value={value} key={index} index={index}>
+                    {React.createElement(tab.component, {})}
+                </TabPanel>
+            ))}
         </Box>
     )
 }

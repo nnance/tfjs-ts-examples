@@ -15,16 +15,17 @@ export type BatchResult = {
 
 interface ModelTabProps {
     model?: TrainedModel
+    batchResults?: BatchResult[]
 }
 
 export function ModelTab(props: ModelTabProps) {
-    const { model } = props
+    const { model, batchResults } = props
 
-    const [batchResults, setBatchResults] = React.useState<BatchResult[]>([])
     const [spec, setSpec] = React.useState<VisualizationSpec>()
     const [accSpec, setAccSpec] = React.useState<VisualizationSpec>()
 
     React.useEffect(() => {
+        if (!batchResults) return
         const values = batchResults.map((batch) => ({
             x: batch.batchNumber,
             y: batch.loss,
@@ -40,6 +41,7 @@ export function ModelTab(props: ModelTabProps) {
     }, [batchResults, setSpec])
 
     React.useEffect(() => {
+        if (!batchResults) return
         const values = batchResults.map((batch) => ({
             x: batch.batchNumber,
             y: batch.acc,
@@ -70,7 +72,7 @@ export function ModelTab(props: ModelTabProps) {
                     </React.Fragment>
                 )}
             </Paper>
-            {batchResults.length > 0 && (
+            {batchResults && (
                 <Paper
                     sx={{
                         p: 2,
