@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
+import { BatchResult } from '../client/components/handwriting/ModelTab'
 import { Batch } from '../data/mnist'
 
 export const fileName = 'recognizeHandwriting'
@@ -227,5 +228,25 @@ export async function loadTrainedModel() {
             predict(model, testData, testDataSize),
         predictWithValues: (testData: Batch, testDataSize = 20) =>
             predictWithValues(model, testData, testDataSize),
+    }
+}
+
+export async function loadTrainingResults() {
+    const results = await fetch(
+        `http://localhost:8080/models/${fileName}/results.json`
+    )
+    const json = await results.json()
+    console.dir(json)
+    return json as {
+        epochs: number[]
+        history: {
+            val_loss: number[]
+            val_acc: number[]
+            loss: number[]
+            acc: number[]
+        }
+        batchHistory: [
+            { batch: number; size: number; loss: number; acc: number }
+        ]
     }
 }

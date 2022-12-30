@@ -19,8 +19,8 @@ type Command = {
 
 type TrainOptions = {
     model: Models
-    epochs: number
-    batch_size: number
+    epochs?: number
+    batch_size?: number
     model_save_path?: string
 }
 
@@ -94,8 +94,6 @@ function getCommand(command: Commands): Command {
 function parseTrainArgs(args: string[]) {
     const options: TrainOptions = {
         model: 'predict',
-        epochs: 20,
-        batch_size: 128,
     }
 
     args.forEach((arg) => {
