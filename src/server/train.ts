@@ -14,12 +14,11 @@ function saveModel(model: tf.Sequential, path: string, fileName: string) {
     return model.save(`file://${path}/${fileName}`)
 }
 
-// TODO: save training history and other metrics to a file
 // TODO: serve the training history and other metrics to the client
 
 export async function trainHandwriting(
-    epochs = 20,
-    batchSize = 128,
+    epochs = 10,
+    batchSize = 512,
     modelSavePath = defaultPath
 ) {
     const { createModel, fileName } = handwriting
@@ -31,17 +30,29 @@ export async function trainHandwriting(
     const { images: trainImages, labels: trainLabels } = data.getTrainData()
     model.summary()
 
+    const batchHistory: tf.Logs[] = []
+    function onBatchEnd(batch: number, logs?: tf.Logs) {
+        if (!logs) return
+        batchHistory.push(logs)
+    }
+
     const validationSplit = 0.15
-    await model.fit(trainImages, trainLabels, {
+    const history = await model.fit(trainImages, trainLabels, {
         epochs,
         batchSize,
         validationSplit,
+        callbacks: {
+            onBatchEnd,
+        },
     })
 
     const { images: testImages, labels: testLabels } = data.getTestData()
     const evalOutput = model.evaluate(testImages, testLabels)
 
     if (!Array.isArray(evalOutput)) return
+
+    evalOutput[0].print()
+    evalOutput[1].print()
 
     console.log(
         `\nEvaluation result:\n` +
@@ -52,8 +63,15 @@ export async function trainHandwriting(
 
     const results = await saveModel(model, modelSavePath, fileName)
     console.log(
-        `Model saved as ${results.modelArtifactsInfo.modelTopologyType}`
+        `Model saved as ${results.modelArtifactsInfo.modelTopologyType} to ${modelSavePath}/${fileName}`
     )
+
+    const resultsFileName = `${modelSavePath}/${fileName}/results.json`
+    fs.writeFileSync(
+        resultsFileName,
+        JSON.stringify({ ...history, batchHistory })
+    )
+    console.log(`Training results saved to ${resultsFileName}`)
 }
 
 export async function trainPrediction(
