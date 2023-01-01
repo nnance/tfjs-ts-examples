@@ -5,6 +5,7 @@ import {
     loadTrainingResults,
     TrainedModel,
 } from '../../../models/recognize-handwriting'
+import { AccuracySummary } from '../AccuracySummary'
 import { Chart } from '../Chart'
 import { lineChart } from '../charts/linechart'
 import { ModelSummary } from '../ModelSummary'
@@ -36,13 +37,13 @@ const getBatchAccResults = (results: TrainingResults) =>
     }))
 
 const getEpochLossResults = (results: TrainingResults) => [
-    results.history.loss.map((y, x) => ({ x, y })),
-    results.history.val_loss.map((y, x) => ({ x, y })),
+    results.history.loss.map((y, x) => ({ x, y: y as number })),
+    results.history.val_loss.map((y, x) => ({ x, y: y as number })),
 ]
 
 const getEpochAccResults = (results: TrainingResults) => [
-    results.history.acc.map((y, x) => ({ x, y })),
-    results.history.val_acc.map((y, x) => ({ x, y })),
+    results.history.acc.map((y, x) => ({ x, y: y as number })),
+    results.history.val_acc.map((y, x) => ({ x, y: y as number })),
 ]
 
 // transform batch results to line chart
@@ -126,20 +127,20 @@ export function ModelTab(props: ModelTabProps) {
 
     return (
         <React.Fragment>
-            <Paper
-                sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}
-            >
-                {model && (
+            {model && (
+                <Paper
+                    sx={{
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}
+                >
                     <React.Fragment>
                         <Title>Model Summary</Title>
                         <ModelSummary model={model} />
                     </React.Fragment>
-                )}
-            </Paper>
+                </Paper>
+            )}
             {batchResults && (
                 <Paper
                     sx={{
@@ -164,6 +165,20 @@ export function ModelTab(props: ModelTabProps) {
                     <Title>onEpochEnd</Title>
                     <Chart spec={epochLossSpec} />
                     <Chart spec={epochAccSpec} />
+                </Paper>
+            )}
+            {batchResults && (
+                <Paper
+                    sx={{
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }}
+                >
+                    <React.Fragment>
+                        <Title>Accuracy Summary</Title>
+                        <AccuracySummary summary={batchResults.accuracy} />
+                    </React.Fragment>
                 </Paper>
             )}
         </React.Fragment>

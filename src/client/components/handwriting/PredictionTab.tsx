@@ -10,7 +10,6 @@ import {
 import {
     getImagesFromTensors,
     PredictionResults,
-    TrainedModel,
 } from '../../../models/recognize-handwriting'
 import { TensorImage } from '../TensorImage'
 import { useState } from 'react'

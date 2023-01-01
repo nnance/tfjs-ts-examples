@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
-import { BatchResult } from '../client/components/handwriting/ModelTab'
 import { Batch } from '../data/mnist'
+import { getHandwritingTrainingResults } from '../server/train'
 
 export const fileName = 'recognizeHandwriting'
 
@@ -99,7 +99,7 @@ export async function getImagesFromTensors(examples: Batch) {
     return images
 }
 
-const classNames = [
+export const classNames = [
     'Zero',
     'One',
     'Two',
@@ -237,16 +237,5 @@ export async function loadTrainingResults() {
     )
     const json = await results.json()
     console.dir(json)
-    return json as {
-        epochs: number[]
-        history: {
-            val_loss: number[]
-            val_acc: number[]
-            loss: number[]
-            acc: number[]
-        }
-        batchHistory: [
-            { batch: number; size: number; loss: number; acc: number }
-        ]
-    }
+    return json as ReturnType<typeof getHandwritingTrainingResults>
 }

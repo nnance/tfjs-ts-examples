@@ -6,28 +6,27 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import { TrainedModel } from '../../models/recognize-handwriting'
+import { classNames } from '../../models/recognize-handwriting'
 
-//
-// Helper functions
-//
-interface ModelSummaryProps {
-    model: TrainedModel
+interface AccuracySummaryProps {
+    summary: {
+        accuracy: number
+        count: number
+    }[]
 }
 
-export function ModelSummary(props: ModelSummaryProps) {
-    const { model } = props
-    const layers = model.summary()
+export function AccuracySummary(props: AccuracySummaryProps) {
+    const { summary } = props
 
-    const cols = ['Layer Name', 'Output Shape', '# Of Params', 'Trainable']
+    const cols = ['Class', 'Accuracy', '# Of Images']
 
-    const values = layers.map((l) => [
-        l.name,
-        l.outputShape,
-        l.parameters,
-        l.trainable ? 'Yes' : 'No',
+    const values = summary.map((l, i) => [
+        classNames[i],
+        l.accuracy.toFixed(3),
+        l.count,
     ])
 
+    // TODO: generalize this into a reusable component
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">

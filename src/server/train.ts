@@ -4,14 +4,40 @@ import { getData } from '../data/cars'
 import * as predict from '../models/predict-2d-data'
 import * as handwriting from '../models/recognize-handwriting'
 import { MnistData } from '../data/mnist-node'
+import {
+    perClassAccuracy,
+    printEvaluationResult,
+    printPerClassAccuracy,
+} from '../models/metrics'
 
 export const defaultPath = './.artifacts'
 
-function saveModel(model: tf.Sequential, path: string, fileName: string) {
+async function saveModel(model: tf.Sequential, path: string, fileName: string) {
     if (!fs.existsSync(path)) {
         fs.mkdirSync(path)
     }
-    return model.save(`file://${path}/${fileName}`)
+    const results = await model.save(`file://${path}/${fileName}`)
+    console.log(
+        `Model saved as ${results.modelArtifactsInfo.modelTopologyType} to ${path}/${fileName}`
+    )
+}
+
+function saveResults(
+    path: string,
+    fileName: string,
+    results: ReturnType<typeof getHandwritingTrainingResults>
+) {
+    const resultsFileName = `${path}/${fileName}/results.json`
+    fs.writeFileSync(resultsFileName, JSON.stringify(results, null, 2))
+    console.log(`Training results saved to ${resultsFileName}`)
+}
+
+export function getHandwritingTrainingResults(
+    history: tf.History,
+    batchHistory: tf.Logs[],
+    accuracy: Awaited<ReturnType<typeof perClassAccuracy>>
+) {
+    return { ...history, batchHistory, accuracy }
 }
 
 export async function trainHandwriting(
@@ -30,8 +56,7 @@ export async function trainHandwriting(
 
     const batchHistory: tf.Logs[] = []
     function onBatchEnd(batch: number, logs?: tf.Logs) {
-        if (!logs) return
-        batchHistory.push(logs)
+        if (logs) batchHistory.push(logs)
     }
 
     const validationSplit = 0.15
@@ -44,32 +69,29 @@ export async function trainHandwriting(
         },
     })
 
+    console.log('Training completed\n')
+
+    await saveModel(model, modelSavePath, fileName)
+
     const { images: testImages, labels: testLabels } = data.getTestData()
+
     const evalOutput = model.evaluate(testImages, testLabels)
-
     if (!Array.isArray(evalOutput)) return
+    printEvaluationResult(evalOutput)
 
-    evalOutput[0].print()
-    evalOutput[1].print()
-
-    console.log(
-        `\nEvaluation result:\n` +
-            `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; ` +
-            `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`
+    const preds = model.predict(testImages) as tf.Tensor<tf.Rank>
+    const accuracy = await perClassAccuracy(
+        preds.argMax(-1),
+        testLabels.argMax(-1)
     )
-    console.log('Training completed')
+    printPerClassAccuracy(accuracy)
 
-    const results = await saveModel(model, modelSavePath, fileName)
-    console.log(
-        `Model saved as ${results.modelArtifactsInfo.modelTopologyType} to ${modelSavePath}/${fileName}`
+    const results = getHandwritingTrainingResults(
+        history,
+        batchHistory,
+        accuracy
     )
-
-    const resultsFileName = `${modelSavePath}/${fileName}/results.json`
-    fs.writeFileSync(
-        resultsFileName,
-        JSON.stringify({ ...history, batchHistory })
-    )
-    console.log(`Training results saved to ${resultsFileName}`)
+    saveResults(modelSavePath, fileName, results)
 }
 
 export async function trainPrediction(
@@ -110,8 +132,5 @@ export async function trainPrediction(
     // Train the model
     await trainModel(model, inputs, labels, epochs, batchSize)
     console.log('Done Training')
-    const results = await saveModel(model, modelSavePath, fileName)
-    console.log(
-        `Model saved as ${results.modelArtifactsInfo.modelTopologyType}`
-    )
+    await saveModel(model, modelSavePath, fileName)
 }
