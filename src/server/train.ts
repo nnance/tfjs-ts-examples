@@ -3,12 +3,12 @@ import * as tf from '@tensorflow/tfjs-node-gpu'
 import { getData } from '../data/cars'
 import * as predict from '../models/predict-2d-data'
 import * as handwriting from '../models/recognize-handwriting'
-import { MnistData } from '../data/mnist-node'
 import {
     perClassAccuracy,
     printEvaluationResult,
     printPerClassAccuracy,
 } from '../models/metrics'
+import { batchToTensors, getBatch, loadAllData } from '../data/mnist-node'
 
 export const defaultPath = './.artifacts'
 
@@ -47,12 +47,13 @@ export async function trainHandwriting(
 ) {
     const { createModel, fileName } = handwriting
 
-    const data = new MnistData()
     const model = createModel()
-    await data.loadData()
-
-    const { images: trainImages, labels: trainLabels } = data.getTrainData()
     model.summary()
+
+    const dataset = await loadAllData()
+    const trainingSet = getBatch(dataset, true)
+    const { images: trainImages, labels: trainLabels } =
+        batchToTensors(trainingSet)
 
     const batchHistory: tf.Logs[] = []
     function onBatchEnd(batch: number, logs?: tf.Logs) {
@@ -73,7 +74,8 @@ export async function trainHandwriting(
 
     await saveModel(model, modelSavePath, fileName)
 
-    const { images: testImages, labels: testLabels } = data.getTestData()
+    const testSet = getBatch(dataset, false)
+    const { images: testImages, labels: testLabels } = batchToTensors(testSet)
 
     const evalOutput = model.evaluate(testImages, testLabels)
     if (!Array.isArray(evalOutput)) return

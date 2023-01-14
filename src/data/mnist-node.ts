@@ -4,9 +4,6 @@ import zlib from 'zlib'
 import assert from 'assert'
 import * as tf from '@tensorflow/tfjs-node-gpu'
 
-//TODO: This is a hack to get the mnist data to work with tfjs-node-gpu
-//      Remove this once the issue is fixed.
-
 // MNIST data constants:
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/'
 const IMAGE_PATH = './.cache/'
@@ -110,70 +107,65 @@ async function loadLabels(filename: string) {
     return labels
 }
 
-/** Helper class to handle loading training and test data. */
-export class MnistData {
-    dataset: (Float32Array[] | Int32Array[])[] = []
-    trainSize = 0
-    testSize = 0
-    trainBatchIndex = 0
-    testBatchIndex = 0
+type Dataset = Awaited<ReturnType<typeof loadAllData>>
+export async function loadAllData() {
+    return Promise.all([
+        loadImages(TRAIN_IMAGES_FILE),
+        loadLabels(TRAIN_LABELS_FILE),
+        loadImages(TEST_IMAGES_FILE),
+        loadLabels(TEST_LABELS_FILE),
+    ])
+}
 
-    /** Loads training and test data. */
-    async loadData() {
-        this.dataset = await Promise.all([
-            loadImages(TRAIN_IMAGES_FILE),
-            loadLabels(TRAIN_LABELS_FILE),
-            loadImages(TEST_IMAGES_FILE),
-            loadLabels(TEST_LABELS_FILE),
-        ])
-        this.trainSize = this.dataset[0].length
-        this.testSize = this.dataset[2].length
+type Batch = ReturnType<typeof getBatch>
+export function getBatch(dataset: Dataset, isTrainingData = false) {
+    const imagesIndex = isTrainingData ? 0 : 2
+    const labelsIndex = isTrainingData ? 1 : 3
+
+    const size = dataset[imagesIndex].length
+    tf.util.assert(
+        dataset[labelsIndex].length === size,
+        () =>
+            `Mismatch in the number of images (${size}) and ` +
+            `the number of labels (${dataset[labelsIndex].length})`
+    )
+
+    // Only create one big array to hold batch of images.
+    const imagesShape: [number, number, number, number] = [
+        size,
+        IMAGE_HEIGHT,
+        IMAGE_WIDTH,
+        1,
+    ]
+    const images = new Float32Array(tf.util.sizeFromShape(imagesShape))
+    const labels = new Int32Array(tf.util.sizeFromShape([size, 1]))
+
+    let imageOffset = 0
+    let labelOffset = 0
+    for (let i = 0; i < size; ++i) {
+        images.set(dataset[imagesIndex][i], imageOffset)
+        labels.set(dataset[labelsIndex][i], labelOffset)
+        imageOffset += IMAGE_FLAT_SIZE
+        labelOffset += 1
     }
 
-    getTrainData() {
-        return this.getData_(true)
-    }
+    return { images, labels, size }
+}
 
-    getTestData() {
-        return this.getData_(false)
-    }
+export function batchToTensors(batch: Batch) {
+    const { images, labels, size } = batch
 
-    getData_(isTrainingData: boolean) {
-        const imagesIndex = isTrainingData ? 0 : 2
-        const labelsIndex = isTrainingData ? 1 : 3
+    const imagesShape: [number, number, number, number] = [
+        size,
+        IMAGE_HEIGHT,
+        IMAGE_WIDTH,
+        1,
+    ]
 
-        const size = this.dataset[imagesIndex].length
-        tf.util.assert(
-            this.dataset[labelsIndex].length === size,
-            () =>
-                `Mismatch in the number of images (${size}) and ` +
-                `the number of labels (${this.dataset[labelsIndex].length})`
-        )
-
-        // Only create one big array to hold batch of images.
-        const imagesShape: [number, number, number, number] = [
-            size,
-            IMAGE_HEIGHT,
-            IMAGE_WIDTH,
-            1,
-        ]
-        const images = new Float32Array(tf.util.sizeFromShape(imagesShape))
-        const labels = new Int32Array(tf.util.sizeFromShape([size, 1]))
-
-        let imageOffset = 0
-        let labelOffset = 0
-        for (let i = 0; i < size; ++i) {
-            images.set(this.dataset[imagesIndex][i], imageOffset)
-            labels.set(this.dataset[labelsIndex][i], labelOffset)
-            imageOffset += IMAGE_FLAT_SIZE
-            labelOffset += 1
-        }
-
-        return {
-            images: tf.tensor4d(images, imagesShape),
-            labels: tf
-                .oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE)
-                .toFloat(),
-        }
+    return {
+        images: tf.tensor4d(images, imagesShape),
+        labels: tf
+            .oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE)
+            .toFloat(),
     }
 }
