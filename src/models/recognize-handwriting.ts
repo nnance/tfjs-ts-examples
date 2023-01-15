@@ -207,6 +207,5 @@ export async function loadTrainingResults() {
         `http://localhost:8080/models/${fileName}/results.json`
     )
     const json = await results.json()
-    console.dir(json)
     return json as ReturnType<typeof getHandwritingTrainingResults>
 }
