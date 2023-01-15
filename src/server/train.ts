@@ -8,7 +8,7 @@ import {
     printEvaluationResult,
     printPerClassAccuracy,
 } from '../models/metrics'
-import { batchToTensors, getBatch, loadAllData } from '../data/mnist-node'
+import { loadMnistData } from '../data/mnist-node'
 
 export const defaultPath = './.artifacts'
 
@@ -50,10 +50,10 @@ export async function trainHandwriting(
     const model = createModel()
     model.summary()
 
-    const dataset = await loadAllData()
-    const trainingSet = getBatch(dataset, true)
-    const { images: trainImages, labels: trainLabels } =
-        batchToTensors(trainingSet)
+    const dataset = await loadMnistData()
+    const { images: trainImages, labels: trainLabels } = dataset
+        .trainBatch()
+        .toTensor()
 
     const batchHistory: tf.Logs[] = []
     function onBatchEnd(batch: number, logs?: tf.Logs) {
@@ -74,8 +74,9 @@ export async function trainHandwriting(
 
     await saveModel(model, modelSavePath, fileName)
 
-    const testSet = getBatch(dataset, false)
-    const { images: testImages, labels: testLabels } = batchToTensors(testSet)
+    const { images: testImages, labels: testLabels } = dataset
+        .testBatch()
+        .toTensor()
 
     const evalOutput = model.evaluate(testImages, testLabels)
     if (!Array.isArray(evalOutput)) return

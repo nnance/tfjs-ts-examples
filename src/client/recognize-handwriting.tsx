@@ -46,7 +46,7 @@ export const RecognizeHandwriting = (props: {
 
     useEffect(() => {
         loadMnistData().then((data) => {
-            const examples = data.nextTestBatch(20)
+            const examples = data.nextTestBatch(20).toTensor()
             setTestData(examples)
         })
     }, [])

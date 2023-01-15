@@ -145,6 +145,17 @@ function splitDataset(
     return [trainImages, trainLabels, testImages, testLabels]
 }
 
+function batchToTensor(
+    images: Float32Array,
+    labels: Uint8Array,
+    batchSize: number
+): Batch {
+    return {
+        xs: tf.tensor2d(images, [batchSize, IMAGE_SIZE]),
+        labels: tf.tensor2d(labels, [batchSize, NUM_CLASSES]),
+    }
+}
+
 const nextBatch =
     (images: Float32Array, classes: Uint8Array, index: () => number) =>
     (batchSize: number) => {
@@ -167,10 +178,12 @@ const nextBatch =
             batchLabelsArray.set(label, i * NUM_CLASSES)
         }
 
-        const xs = tf.tensor2d(batchImagesArray, [batchSize, IMAGE_SIZE])
-        const labels = tf.tensor2d(batchLabelsArray, [batchSize, NUM_CLASSES])
-
-        return { xs, labels }
+        return {
+            images: batchImagesArray,
+            labels: batchLabelsArray,
+            toTensor: () =>
+                batchToTensor(batchImagesArray, batchLabelsArray, batchSize),
+        }
     }
 
 function getIndices(indices?: Uint32Array) {

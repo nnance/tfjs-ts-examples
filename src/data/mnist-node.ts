@@ -108,7 +108,7 @@ async function loadLabels(filename: string) {
 }
 
 type Dataset = Awaited<ReturnType<typeof loadAllData>>
-export async function loadAllData() {
+async function loadAllData() {
     return Promise.all([
         loadImages(TRAIN_IMAGES_FILE),
         loadLabels(TRAIN_LABELS_FILE),
@@ -117,44 +117,51 @@ export async function loadAllData() {
     ])
 }
 
-type Batch = ReturnType<typeof getBatch>
-export function getBatch(dataset: Dataset, isTrainingData = false) {
-    const imagesIndex = isTrainingData ? 0 : 2
-    const labelsIndex = isTrainingData ? 1 : 3
+const getBatch =
+    (dataset: Dataset) =>
+    (isTrainingData = false) => {
+        const imagesIndex = isTrainingData ? 0 : 2
+        const labelsIndex = isTrainingData ? 1 : 3
 
-    const size = dataset[imagesIndex].length
-    tf.util.assert(
-        dataset[labelsIndex].length === size,
-        () =>
-            `Mismatch in the number of images (${size}) and ` +
-            `the number of labels (${dataset[labelsIndex].length})`
-    )
+        const size = dataset[imagesIndex].length
+        tf.util.assert(
+            dataset[labelsIndex].length === size,
+            () =>
+                `Mismatch in the number of images (${size}) and ` +
+                `the number of labels (${dataset[labelsIndex].length})`
+        )
 
-    // Only create one big array to hold batch of images.
-    const imagesShape: [number, number, number, number] = [
-        size,
-        IMAGE_HEIGHT,
-        IMAGE_WIDTH,
-        1,
-    ]
-    const images = new Float32Array(tf.util.sizeFromShape(imagesShape))
-    const labels = new Int32Array(tf.util.sizeFromShape([size, 1]))
+        // Only create one big array to hold batch of images.
+        const imagesShape: [number, number, number, number] = [
+            size,
+            IMAGE_HEIGHT,
+            IMAGE_WIDTH,
+            1,
+        ]
+        const images = new Float32Array(tf.util.sizeFromShape(imagesShape))
+        const labels = new Int32Array(tf.util.sizeFromShape([size, 1]))
 
-    let imageOffset = 0
-    let labelOffset = 0
-    for (let i = 0; i < size; ++i) {
-        images.set(dataset[imagesIndex][i], imageOffset)
-        labels.set(dataset[labelsIndex][i], labelOffset)
-        imageOffset += IMAGE_FLAT_SIZE
-        labelOffset += 1
+        let imageOffset = 0
+        let labelOffset = 0
+        for (let i = 0; i < size; ++i) {
+            images.set(dataset[imagesIndex][i], imageOffset)
+            labels.set(dataset[labelsIndex][i], labelOffset)
+            imageOffset += IMAGE_FLAT_SIZE
+            labelOffset += 1
+        }
+        return {
+            images,
+            labels,
+            size,
+            toTensor: () => batchToTensors(images, labels, size),
+        }
     }
 
-    return { images, labels, size }
-}
-
-export function batchToTensors(batch: Batch) {
-    const { images, labels, size } = batch
-
+function batchToTensors(
+    images: Float32Array,
+    labels: Int32Array,
+    size: number
+) {
     const imagesShape: [number, number, number, number] = [
         size,
         IMAGE_HEIGHT,
@@ -167,5 +174,13 @@ export function batchToTensors(batch: Batch) {
         labels: tf
             .oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE)
             .toFloat(),
+    }
+}
+
+export async function loadMnistData() {
+    const dataset = await loadAllData()
+    return {
+        trainBatch: () => getBatch(dataset)(true),
+        testBatch: () => getBatch(dataset)(false),
     }
 }
