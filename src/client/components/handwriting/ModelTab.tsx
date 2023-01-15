@@ -2,13 +2,13 @@ import { Paper } from '@mui/material'
 import React from 'react'
 import { VisualizationSpec } from 'vega-embed'
 import {
+    classNames,
     loadTrainingResults,
     TrainedModel,
 } from '../../../models/recognize-handwriting'
-import { AccuracySummary } from '../AccuracySummary'
 import { Chart } from '../Chart'
 import { lineChart } from '../charts/linechart'
-import { ModelSummary } from '../ModelSummary'
+import { SummaryTable } from '../SummaryTable'
 import { Title } from '../Title'
 
 export type BatchResult = {
@@ -87,6 +87,30 @@ const epochAccChart = (values: ReturnType<typeof getEpochAccResults>) =>
         }
     )
 
+const modelSummaryCols = [
+    'Layer Name',
+    'Output Shape',
+    '# Of Params',
+    'Trainable',
+]
+const modelToRows = (model: TrainedModel) =>
+    model
+        .summary()
+        .map((l) => [
+            l.name,
+            l.outputShape,
+            l.parameters,
+            l.trainable ? 'Yes' : 'No',
+        ])
+
+const accuracySummaryCols = ['Class', 'Accuracy', '# Of Images']
+const accuracyToRows = (results: TrainingResults) =>
+    results.accuracy.map((l, i) => [
+        classNames[i],
+        l.accuracy.toFixed(3),
+        l.count,
+    ])
+
 export function ModelTab(props: ModelTabProps) {
     const { model } = props
 
@@ -137,7 +161,10 @@ export function ModelTab(props: ModelTabProps) {
                 >
                     <React.Fragment>
                         <Title>Model Summary</Title>
-                        <ModelSummary model={model} />
+                        <SummaryTable
+                            cols={modelSummaryCols}
+                            values={modelToRows(model)}
+                        />
                     </React.Fragment>
                 </Paper>
             )}
@@ -177,7 +204,10 @@ export function ModelTab(props: ModelTabProps) {
                 >
                     <React.Fragment>
                         <Title>Accuracy Summary</Title>
-                        <AccuracySummary summary={batchResults.accuracy} />
+                        <SummaryTable
+                            cols={accuracySummaryCols}
+                            values={accuracyToRows(batchResults)}
+                        />
                     </React.Fragment>
                 </Paper>
             )}

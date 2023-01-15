@@ -1,17 +1,10 @@
 import React from 'react'
-import {
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-} from '@mui/material'
 import { PredictionResults } from '../../../models/recognize-handwriting'
 import { TensorImage } from '../TensorImage'
 import { useState } from 'react'
 import { useEffect } from 'preact/hooks'
 import { Batch, getImagesFromTensors } from '../../../data/mnist'
+import { SummaryTable } from '../SummaryTable'
 
 type PredictionResultsProps = {
     testData?: Batch
@@ -35,53 +28,29 @@ function horizontalTable(examples: ImageData[], results: PredictionResults) {
 // transform the results into a vertical table
 // so that we can display the images and the results
 // side by side
-function verticalTable(examples: ImageData[], results: PredictionResults) {
-    const transformed = [
-        [...cols],
-        ...results.map((row, i) => [
-            examples[i],
-            row[0].className,
-            row[0].value.toFixed(3),
-        ]),
-    ]
-    return transformed
-}
-
-// type guard to check if the data is an ImageData
-function isImageData(data: ImageData | string[] | string): data is ImageData {
-    return data instanceof ImageData
-}
+const verticalTable = (examples: ImageData[], results: PredictionResults) =>
+    results.map((row, i) => [
+        <TensorImage key={i} imageData={examples[i]} />,
+        row[0].className,
+        row[0].value.toFixed(3),
+    ])
 
 export function PredictionTab(props: PredictionResultsProps) {
     const { testData, results } = props
 
-    const [examples, setExamples] = useState<ImageData[]>([])
+    const [tensors, setTensors] = useState<ImageData[]>([])
 
     useEffect(() => {
         if (!testData) return
-        getImagesFromTensors(testData).then(setExamples)
+        getImagesFromTensors(testData).then((images) => setTensors(images))
     }, [testData])
 
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableBody>
-                    {results &&
-                        verticalTable(examples, results).map((row, key) => (
-                            <TableRow key={key}>
-                                {row.map((col, key) => (
-                                    <TableCell key={key}>
-                                        {isImageData(col) ? (
-                                            <TensorImage imageData={col} />
-                                        ) : (
-                                            col
-                                        )}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+        (results && tensors.length > 0 && (
+            <SummaryTable
+                cols={cols}
+                values={verticalTable(tensors, results)}
+            />
+        )) || <div>Evaluate model to see results</div>
     )
 }

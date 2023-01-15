@@ -6,27 +6,14 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import { TrainedModel } from '../../models/recognize-handwriting'
 
-//
-// Helper functions
-//
-interface ModelSummaryProps {
-    model: TrainedModel
+interface SummaryProps<T> {
+    cols: string[]
+    values: T[]
 }
 
-export function ModelSummary(props: ModelSummaryProps) {
-    const { model } = props
-    const layers = model.summary()
-
-    const cols = ['Layer Name', 'Output Shape', '# Of Params', 'Trainable']
-
-    const values = layers.map((l) => [
-        l.name,
-        l.outputShape,
-        l.parameters,
-        l.trainable ? 'Yes' : 'No',
-    ])
+export function SummaryTable<T>(props: SummaryProps<T>) {
+    const { cols, values } = props
 
     return (
         <TableContainer component={Paper}>
@@ -41,9 +28,10 @@ export function ModelSummary(props: ModelSummaryProps) {
                 <TableBody>
                     {values.map((row, key) => (
                         <TableRow key={key}>
-                            {row.map((col, key) => (
-                                <TableCell key={key}>{col}</TableCell>
-                            ))}
+                            {Array.isArray(row) &&
+                                row.map((col, key) => (
+                                    <TableCell key={key}>{col}</TableCell>
+                                ))}
                         </TableRow>
                     ))}
                 </TableBody>
