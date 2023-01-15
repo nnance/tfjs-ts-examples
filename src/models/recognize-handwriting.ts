@@ -70,35 +70,6 @@ export function createModel() {
     return model
 }
 
-// get an image by index from the test data set as ImageData
-async function getImageData(index: number, testData: Batch) {
-    const imageTensor = tf.tidy(() => {
-        // Reshape the image to 28x28 px
-        return testData.xs
-            .slice([index, 0], [1, testData.xs.shape[1]])
-            .reshape([28, 28, 1])
-    })
-    const imageData = await tf.browser.toPixels(imageTensor as tf.Tensor2D)
-    imageTensor.dispose()
-    return new ImageData(imageData, 28, 28)
-}
-
-// get image count from the test data set
-function getImageCount(testData: Batch) {
-    return testData.xs.shape[0]
-}
-
-export async function getImagesFromTensors(examples: Batch) {
-    const images: ImageData[] = []
-
-    const numExamples = getImageCount(examples)
-    for (let i = 0; i < numExamples; i++) {
-        const image = await getImageData(i, examples)
-        images.push(image)
-    }
-    return images
-}
-
 export const classNames = [
     'Zero',
     'One',

@@ -7,14 +7,11 @@ import {
     TableContainer,
     TableRow,
 } from '@mui/material'
-import {
-    getImagesFromTensors,
-    PredictionResults,
-} from '../../../models/recognize-handwriting'
+import { PredictionResults } from '../../../models/recognize-handwriting'
 import { TensorImage } from '../TensorImage'
 import { useState } from 'react'
 import { useEffect } from 'preact/hooks'
-import { Batch } from '../../../data/mnist'
+import { Batch, getImagesFromTensors } from '../../../data/mnist'
 
 type PredictionResultsProps = {
     testData?: Batch

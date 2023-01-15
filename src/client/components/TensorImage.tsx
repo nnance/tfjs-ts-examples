@@ -12,15 +12,11 @@ export function TensorImage(props: TensorImageProps) {
     const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
     useEffect(() => {
-        async function render() {
-            if (canvasRef.current) {
-                canvasRef.current
-                    .getContext('2d')
-                    ?.putImageData(props.imageData, 0, 0)
-            }
+        if (canvasRef.current) {
+            canvasRef.current
+                .getContext('2d')
+                ?.putImageData(props.imageData, 0, 0)
         }
-
-        render()
     }, [canvasRef, props])
 
     return (

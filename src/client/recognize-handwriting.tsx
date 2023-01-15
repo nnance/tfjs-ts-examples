@@ -1,6 +1,6 @@
 import React from 'react'
 import { Fragment, useEffect, useState } from 'react'
-import { Batch, MnistData } from '../data/mnist'
+import { Batch, loadMnistData } from '../data/mnist'
 import Button from '@mui/material/Button'
 import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
@@ -32,73 +32,6 @@ function TitleSection() {
     )
 }
 
-/*
-const classNames = [
-    'Zero',
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six',
-    'Seven',
-    'Eight',
-    'Nine',
-]
-
-async function showAccuracy(model: tf.LayersModel, batch: Batch) {
-    const [preds, labels] = doPrediction(model, batch)
-    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
-    const container = { name: 'Accuracy', tab: 'Evaluation' }
-    tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
-
-    labels.dispose()
-}
-
-async function showConfusion(model: tf.Sequential, data: MnistData) {
-    const [preds, labels] = doPrediction(model, data)
-    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
-    const container = { name: 'Confusion Matrix', tab: 'Evaluation' }
-    tfvis.render.confusionMatrix(container, {
-        values: confusionMatrix,
-        tickLabels: classNames,
-    })
-
-    labels.dispose()
-}
-
-async function fetchTrainingResults(model: tf.LayersModel) {
-    const results: BatchResult[] = []
-    let currentEpoch = 0
-    const batchSize = 11
-
-    function onBatchEnd(batch: number, logs?: tf.Logs) {
-        if (!logs) return
-
-        const batchNumber = currentEpoch * batchSize + batch
-        console.log(`batch: ${batchNumber} acc: ${logs?.acc}`)
-        results.push({
-            batchNumber,
-            acc: logs?.acc,
-            loss: logs?.loss,
-        })
-    }
-
-    function onEpochEnd(epoch: number) {
-        currentEpoch = epoch + 1
-    }
-
-    await trainModel(model, data, 512, 5500, 1000, {
-        onBatchEnd,
-        onEpochEnd,
-    })
-
-    return results
-}
-*/
-
-// TODO: load the model training results and display them in the tabs
-
 export const RecognizeHandwriting = (props: {
     setTitle: (title: string) => void
 }) => {
@@ -112,8 +45,7 @@ export const RecognizeHandwriting = (props: {
     const [results, setResults] = useState<PredictionResults>()
 
     useEffect(() => {
-        const data = new MnistData()
-        data.load().then(() => {
+        loadMnistData().then((data) => {
             const examples = data.nextTestBatch(20)
             setTestData(examples)
         })
@@ -129,13 +61,6 @@ export const RecognizeHandwriting = (props: {
         setResults(results)
         setRunEvaluation(false)
     }, [runEvaluation, model, testData])
-
-    // const trainingResults = await fetchTrainingResults(model)
-    // setBatchResults(trainingResults)
-    // setTest(false)
-    // const metrics = ['loss', 'val_loss', 'acc', 'val_acc']
-    // await showAccuracy(model, examples as Batch)
-    // await showConfusion(model, data)
 
     return (
         <Fragment>

@@ -36,169 +36,131 @@ export type Batch = {
     labels: tf.Tensor2D
 }
 
-/**
- * A class that fetches the sprited MNIST dataset and returns shuffled batches.
- *
- * NOTE: This will get much easier. For now, we do data fetching and
- * manipulation manually.
- */
-export class MnistData {
-    shuffledTrainIndex: number
-    shuffledTestIndex: number
-    datasetImages?: Float32Array
-    datasetLabels?: Uint8Array
-    trainIndices?: Uint32Array
-    testIndices?: Uint32Array
-    trainImages: Float32Array
-    testImages: Float32Array
-    trainLabels: Uint8Array
-    testLabels: Uint8Array
+// get an image by index from the test data set as ImageData
+async function getImageData(index: number, testData: Batch) {
+    const imageTensor = tf.tidy(() => {
+        // Reshape the image to 28x28 px
+        return testData.xs
+            .slice([index, 0], [1, testData.xs.shape[1]])
+            .reshape([28, 28, 1])
+    })
+    const imageData = await tf.browser.toPixels(imageTensor as tf.Tensor2D)
+    imageTensor.dispose()
+    return new ImageData(imageData, 28, 28)
+}
 
-    constructor() {
-        this.shuffledTrainIndex = 0
-        this.shuffledTestIndex = 0
-        this.trainImages = new Float32Array()
-        this.testImages = new Float32Array()
-        this.trainLabels = new Uint8Array()
-        this.testLabels = new Uint8Array()
-    }
+// get image count from the test data set
+function getImageCount(testData: Batch) {
+    return testData.xs.shape[0]
+}
 
-    async load() {
-        // Make a request for the MNIST sprited image.
-        const img = new Image()
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
+async function loadCanvasImage() {
+    // Make a request for the MNIST sprited image.
+    const img = new Image()
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
 
-        const imgRequest = new Promise<Float32Array>((resolve) => {
-            img.crossOrigin = ''
-            img.onload = () => {
-                img.width = img.naturalWidth
-                img.height = img.naturalHeight
+    const imgRequest = new Promise<Float32Array>((resolve) => {
+        if (!ctx) {
+            resolve(new Float32Array())
+            return
+        }
 
-                const datasetBytesBuffer = new ArrayBuffer(
-                    NUM_DATASET_ELEMENTS * IMAGE_SIZE * 4
+        img.crossOrigin = ''
+        img.onload = () => {
+            img.width = img.naturalWidth
+            img.height = img.naturalHeight
+
+            const datasetBytesBuffer = new ArrayBuffer(
+                NUM_DATASET_ELEMENTS * IMAGE_SIZE * 4
+            )
+
+            const chunkSize = 5000
+            canvas.width = img.width
+            canvas.height = chunkSize
+
+            for (let i = 0; i < NUM_DATASET_ELEMENTS / chunkSize; i++) {
+                const datasetBytesView = new Float32Array(
+                    datasetBytesBuffer,
+                    i * IMAGE_SIZE * chunkSize * 4,
+                    IMAGE_SIZE * chunkSize
+                )
+                ctx.drawImage(
+                    img,
+                    0,
+                    i * chunkSize,
+                    img.width,
+                    chunkSize,
+                    0,
+                    0,
+                    img.width,
+                    chunkSize
                 )
 
-                const chunkSize = 5000
-                canvas.width = img.width
-                canvas.height = chunkSize
+                const imageData = ctx.getImageData(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                )
 
-                for (let i = 0; i < NUM_DATASET_ELEMENTS / chunkSize; i++) {
-                    const datasetBytesView = new Float32Array(
-                        datasetBytesBuffer,
-                        i * IMAGE_SIZE * chunkSize * 4,
-                        IMAGE_SIZE * chunkSize
-                    )
-                    ctx.drawImage(
-                        img,
-                        0,
-                        i * chunkSize,
-                        img.width,
-                        chunkSize,
-                        0,
-                        0,
-                        img.width,
-                        chunkSize
-                    )
-
-                    const imageData = ctx.getImageData(
-                        0,
-                        0,
-                        canvas.width,
-                        canvas.height
-                    )
-
-                    for (let j = 0; j < imageData.data.length / 4; j++) {
-                        // All channels hold an equal value since the image is grayscale, so
-                        // just read the red channel.
-                        datasetBytesView[j] = imageData.data[j * 4] / 255
-                    }
+                for (let j = 0; j < imageData.data.length / 4; j++) {
+                    // All channels hold an equal value since the image is grayscale, so
+                    // just read the red channel.
+                    datasetBytesView[j] = imageData.data[j * 4] / 255
                 }
-                this.datasetImages = new Float32Array(datasetBytesBuffer)
-
-                resolve(this.datasetImages)
             }
-            img.src = MNIST_IMAGES_SPRITE_PATH
-        })
+            const datasetImages = new Float32Array(datasetBytesBuffer)
 
-        const labelsRequest = fetch(MNIST_LABELS_PATH)
-        const [imgResponse, labelsResponse] = await Promise.all([
-            imgRequest,
-            labelsRequest,
-        ])
+            resolve(datasetImages)
+        }
+        img.src = MNIST_IMAGES_SPRITE_PATH
+    })
 
-        this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer())
+    const labelsRequest = fetch(MNIST_LABELS_PATH)
+    const [images, labelsResponse] = await Promise.all([
+        imgRequest,
+        labelsRequest,
+    ])
 
-        // Create shuffled indices into the train/test set for when we select a
-        // random dataset element for training / validation.
-        this.trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS)
-        this.testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS)
+    const labels = new Uint8Array(await labelsResponse.arrayBuffer())
 
-        // Slice the the images and labels into train and test sets.
-        this.trainImages = imgResponse.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS)
-        this.testImages = imgResponse.slice(IMAGE_SIZE * NUM_TRAIN_ELEMENTS)
-        this.trainLabels = this.datasetLabels.slice(
-            0,
-            NUM_CLASSES * NUM_TRAIN_ELEMENTS
-        )
-        this.testLabels = this.datasetLabels.slice(
-            NUM_CLASSES * NUM_TRAIN_ELEMENTS
-        )
-
-        return this
+    return {
+        images,
+        labels,
+        size: NUM_DATASET_ELEMENTS,
     }
+}
 
-    nextTrainBatch(batchSize: number): Batch {
-        return this.nextBatch(
-            batchSize,
-            [this.trainImages, this.trainLabels],
-            () => {
-                if (this.trainIndices) {
-                    this.shuffledTrainIndex =
-                        (this.shuffledTrainIndex + 1) % this.trainIndices.length
-                    return this.trainIndices[this.shuffledTrainIndex]
-                }
-                console.warn('does not have train indices')
-                return 0
-            }
-        )
-    }
+function splitDataset(
+    images: Float32Array,
+    labels: Uint8Array
+): [Float32Array, Uint8Array, Float32Array, Uint8Array] {
+    // Slice the the images and labels into train and test sets.
+    const trainImages = images.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS)
+    const testImages = images.slice(IMAGE_SIZE * NUM_TEST_ELEMENTS)
+    const trainLabels = labels.slice(0, NUM_CLASSES * NUM_TRAIN_ELEMENTS)
+    const testLabels = labels.slice(NUM_CLASSES * NUM_TEST_ELEMENTS)
 
-    nextTestBatch(batchSize: number): Batch {
-        return this.nextBatch(
-            batchSize,
-            [this.testImages, this.testLabels],
-            () => {
-                if (this.testIndices) {
-                    this.shuffledTestIndex =
-                        (this.shuffledTestIndex + 1) % this.testIndices.length
-                    return this.testIndices[this.shuffledTestIndex]
-                }
-                console.warn('does not have test indices')
-                return 0
-            }
-        )
-    }
+    return [trainImages, trainLabels, testImages, testLabels]
+}
 
-    nextBatch(
-        batchSize: number,
-        data: [Float32Array, Uint8Array],
-        index: () => number
-    ) {
+const nextBatch =
+    (images: Float32Array, classes: Uint8Array, index: () => number) =>
+    (batchSize: number) => {
         const batchImagesArray = new Float32Array(batchSize * IMAGE_SIZE)
         const batchLabelsArray = new Uint8Array(batchSize * NUM_CLASSES)
 
         for (let i = 0; i < batchSize; i++) {
             const idx = index()
 
-            const image = data[0].slice(
+            const image = images.slice(
                 idx * IMAGE_SIZE,
                 idx * IMAGE_SIZE + IMAGE_SIZE
             )
             batchImagesArray.set(image, i * IMAGE_SIZE)
 
-            const label = data[1].slice(
+            const label = classes.slice(
                 idx * NUM_CLASSES,
                 idx * NUM_CLASSES + NUM_CLASSES
             )
@@ -209,5 +171,53 @@ export class MnistData {
         const labels = tf.tensor2d(batchLabelsArray, [batchSize, NUM_CLASSES])
 
         return { xs, labels }
+    }
+
+function getIndices(indices?: Uint32Array) {
+    let shuffledIndex = 0
+    return () => {
+        if (indices) {
+            shuffledIndex = (shuffledIndex + 1) % indices.length
+            return indices[shuffledIndex]
+        }
+        console.warn('does not have test indices')
+        return 0
+    }
+}
+
+export async function getImagesFromTensors(examples: Batch) {
+    const images: ImageData[] = []
+
+    const numExamples = getImageCount(examples)
+    for (let i = 0; i < numExamples; i++) {
+        const image = await getImageData(i, examples)
+        images.push(image)
+    }
+    return images
+}
+
+export async function loadMnistData() {
+    const dataset = await loadCanvasImage()
+    const [trainImages, trainLabels, testImages, testLabels] = splitDataset(
+        dataset.images,
+        dataset.labels
+    )
+
+    // Create shuffled indices into the train/test set for when we select a
+    // random dataset element for training / validation.
+    const trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS)
+    const testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS)
+
+    return {
+        nextTrainBatch: nextBatch(
+            trainImages,
+            trainLabels,
+            getIndices(trainIndices)
+        ),
+        nextTestBatch: nextBatch(
+            testImages,
+            testLabels,
+            getIndices(testIndices)
+        ),
     }
 }
