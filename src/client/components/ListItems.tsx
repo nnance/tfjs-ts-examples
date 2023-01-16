@@ -7,11 +7,11 @@ export const ListItems = (
         <ListItemButton href="/">
             <ListItemText primary="Get Started" />
         </ListItemButton>
-        <ListItemButton href="/fit-to-curve">
-            <ListItemText primary="Fit to curve" />
+        <ListItemButton href="/predict-2d">
+            <ListItemText primary="Predict 2D Data" />
         </ListItemButton>
         <ListItemButton href="/recognize-handwriting">
-            <ListItemText primary="Recognize handwriting" />
+            <ListItemText primary="Recognize Handwriting" />
         </ListItemButton>
         <ListItemButton>
             <ListItemText primary="Cart Pole" />

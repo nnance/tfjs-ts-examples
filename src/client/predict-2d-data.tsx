@@ -71,7 +71,7 @@ const carPerformanceSpec = (data: EnrichedPredictionResults) => {
     )
 }
 
-export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
+export const Predict2D = (props: { setTitle: (title: string) => void }) => {
     const [spec, setSpec] = React.useState<VisualizationSpec>()
 
     React.useEffect(() => {

@@ -7,7 +7,7 @@ import { Drawer } from './components/Drawer'
 import { Home } from './Home'
 import { Routes, Route, Outlet } from 'react-router-dom'
 import { useState } from 'preact/hooks'
-import { FitToCurve } from './predict-2d-data'
+import { Predict2D } from './predict-2d-data'
 import { RecognizeHandwriting } from './recognize-handwriting'
 
 const mdTheme = createTheme()
@@ -52,8 +52,8 @@ export function App() {
             <Route path="/" element={<Layout title={title} />}>
                 <Route index element={<Home setTitle={setTitle} />} />
                 <Route
-                    path="fit-to-curve"
-                    element={<FitToCurve setTitle={setTitle} />}
+                    path="predict-2d"
+                    element={<Predict2D setTitle={setTitle} />}
                 />
                 <Route
                     path="recognize-handwriting"
