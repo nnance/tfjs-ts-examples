@@ -1,7 +1,9 @@
 import * as React from 'react'
-import { Title } from './components/Title'
 import { Panel } from './components/Panel'
 import { Page } from './components/Page'
+import { TabContainer } from './components/TabContainer'
+import { generateData } from '../data/synthetic-curve'
+import { plotData } from './components/charts/PlotData'
 
 function TitleSection() {
     return (
@@ -16,10 +18,36 @@ function TitleSection() {
     )
 }
 
+function InputTab({ trainingData }: { trainingData: TrainingData }) {
+    const chartRef = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+        if (chartRef.current) {
+            // Plot original data
+            plotData(chartRef.current, trainingData.xs, trainingData.ys)
+        }
+    }, [chartRef, trainingData.xs, trainingData.ys])
+
+    return <div ref={chartRef}></div>
+}
+
+type TrainingData = ReturnType<typeof generateData>
 export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
     React.useEffect(() => {
         props.setTitle('Fit To Curve')
     }, [props])
+
+    const [trainingData] = React.useState(() => {
+        const trueCoefficients = { a: -0.8, b: -0.2, c: 0.9, d: 0.5 }
+        return generateData(100, trueCoefficients)
+    })
+
+    const tabs = [
+        {
+            label: 'Input',
+            component: () => <InputTab trainingData={trainingData} />,
+        },
+    ]
 
     return (
         <Page>
@@ -27,7 +55,7 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
                 <TitleSection />
             </Panel>
             <Panel>
-                <Title>Fit curve with learned coefficients</Title>
+                <TabContainer tabs={tabs} />
             </Panel>
         </Page>
     )
