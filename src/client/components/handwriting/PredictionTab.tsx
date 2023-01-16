@@ -38,7 +38,7 @@ const verticalTable = (examples: ImageData[], results: PredictionResults) =>
 export function PredictionTab(props: PredictionResultsProps) {
     const { testData, results } = props
 
-    const [tensors, setTensors] = useState<ImageData[]>([])
+    const [tensors, setTensors] = useState<ImageData[]>()
 
     useEffect(() => {
         if (!testData) return
@@ -46,7 +46,7 @@ export function PredictionTab(props: PredictionResultsProps) {
     }, [testData])
 
     return (
-        (results && tensors.length > 0 && (
+        (results && tensors && (
             <SummaryTable
                 cols={cols}
                 values={verticalTable(tensors, results)}
