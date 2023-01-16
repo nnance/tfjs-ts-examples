@@ -39,7 +39,7 @@ const optimizer = tf.train.sgd(learningRate)
  *
  * @return number predicted y value
  */
-function predict(x: tf.Tensor) {
+export function predict(x: tf.Tensor) {
     // y = a * x ^ 3 + b * x ^ 2 + c * x + d
     return tf.tidy(() => {
         return a
