@@ -75,7 +75,7 @@ export const Predict2D = (props: { setTitle: (title: string) => void }) => {
     const [spec, setSpec] = React.useState<VisualizationSpec>()
 
     React.useEffect(() => {
-        props.setTitle('Fit To Curve')
+        props.setTitle('Predict 2D Data')
     }, [props])
 
     React.useEffect(() => {
