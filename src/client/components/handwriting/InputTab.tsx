@@ -1,6 +1,5 @@
 import React from 'react'
-import { Batch } from '../../../data/mnist'
-import { getImagesFromTensors } from '../../../data/mnist'
+import { Batch, getImagesFromTensors } from '../../../data/mnist'
 import { TensorImage } from '../TensorImage'
 
 type InputTabProps = {

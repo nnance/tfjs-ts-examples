@@ -1,7 +1,7 @@
-import React from 'react'
-import { Container, Grid, Paper } from '@mui/material'
-import Toolbar from '@mui/material/Toolbar'
+import * as React from 'react'
 import { Title } from './components/Title'
+import { Panel } from './components/Panel'
+import { Page } from './components/Page'
 
 function TitleSection() {
     return (
@@ -22,35 +22,13 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
     }, [props])
 
     return (
-        <React.Fragment>
-            <Toolbar />
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            <TitleSection />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: 360,
-                            }}
-                        >
-                            <Title>Fit curve with learned coefficients</Title>
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        </React.Fragment>
+        <Page>
+            <Panel>
+                <TitleSection />
+            </Panel>
+            <Panel>
+                <Title>Fit curve with learned coefficients</Title>
+            </Panel>
+        </Page>
     )
 }

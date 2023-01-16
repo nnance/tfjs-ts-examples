@@ -1,8 +1,7 @@
 import React from 'react'
+import { useState, useEffect } from 'react'
 import { PredictionResults } from '../../../models/recognize-handwriting'
 import { TensorImage } from '../TensorImage'
-import { useState } from 'react'
-import { useEffect } from 'preact/hooks'
 import { Batch, getImagesFromTensors } from '../../../data/mnist'
 import { SummaryTable } from '../SummaryTable'
 

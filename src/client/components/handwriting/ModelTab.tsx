@@ -1,4 +1,3 @@
-import { Paper } from '@mui/material'
 import React from 'react'
 import { VisualizationSpec } from 'vega-embed'
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../../models/recognize-handwriting'
 import { Chart } from '../Chart'
 import { lineChart } from '../charts/linechart'
+import { Panel } from '../Panel'
 import { SummaryTable } from '../SummaryTable'
 import { Title } from '../Title'
 
@@ -152,13 +152,7 @@ export function ModelTab(props: ModelTabProps) {
     return (
         <React.Fragment>
             {model && (
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
+                <Panel>
                     <React.Fragment>
                         <Title>Model Summary</Title>
                         <SummaryTable
@@ -166,42 +160,24 @@ export function ModelTab(props: ModelTabProps) {
                             values={modelToRows(model)}
                         />
                     </React.Fragment>
-                </Paper>
+                </Panel>
             )}
             {batchResults && (
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
+                <Panel>
                     <Title>onBatchEnd</Title>
                     <Chart spec={lossSpec} />
                     <Chart spec={accSpec} />
-                </Paper>
+                </Panel>
             )}
             {batchResults && (
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
+                <Panel>
                     <Title>onEpochEnd</Title>
                     <Chart spec={epochLossSpec} />
                     <Chart spec={epochAccSpec} />
-                </Paper>
+                </Panel>
             )}
             {batchResults && (
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
+                <Panel>
                     <React.Fragment>
                         <Title>Accuracy Summary</Title>
                         <SummaryTable
@@ -209,7 +185,7 @@ export function ModelTab(props: ModelTabProps) {
                             values={accuracyToRows(batchResults)}
                         />
                     </React.Fragment>
-                </Paper>
+                </Panel>
             )}
         </React.Fragment>
     )

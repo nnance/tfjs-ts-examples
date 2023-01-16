@@ -1,11 +1,6 @@
-import React from 'react'
-import { Fragment, useEffect, useState } from 'react'
+import * as React from 'react'
+import { useEffect, useState } from 'react'
 import { Batch, loadMnistData } from '../data/mnist'
-import Button from '@mui/material/Button'
-import Toolbar from '@mui/material/Toolbar'
-import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
 import { TabContainer } from './components/TabContainer'
 import {
     loadTrainedModel,
@@ -15,6 +10,9 @@ import {
 import { InputTab } from './components/handwriting/InputTab'
 import { ModelTab } from './components/handwriting/ModelTab'
 import { PredictionTab } from './components/handwriting/PredictionTab'
+import { Page } from './components/Page'
+import { Panel } from './components/Panel'
+import { PrimaryButton } from './components/PrimaryButtons'
 
 function TitleSection() {
     return (
@@ -62,70 +60,37 @@ export const RecognizeHandwriting = (props: {
         setRunEvaluation(false)
     }, [runEvaluation, model, testData])
 
+    const tabs = [
+        {
+            label: 'Input',
+            component: () => <InputTab testData={testData} />,
+        },
+        {
+            label: 'Model',
+            component: () => <ModelTab model={model} />,
+        },
+        {
+            label: 'Evaluation',
+            component: () => (
+                <PredictionTab testData={testData} results={results} />
+            ),
+        },
+    ]
+
     return (
-        <Fragment>
-            <Toolbar />
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            <TitleSection />
-                            <Button
-                                variant="contained"
-                                fullWidth={false}
-                                onClick={() => setRunEvaluation(true)}
-                                disabled={runEvaluation}
-                            >
-                                {runEvaluation
-                                    ? 'Training...'
-                                    : 'Evaluate Model'}
-                            </Button>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                minHeight: 360,
-                            }}
-                        >
-                            <TabContainer
-                                tabs={[
-                                    {
-                                        label: 'Input',
-                                        component: () => (
-                                            <InputTab testData={testData} />
-                                        ),
-                                    },
-                                    {
-                                        label: 'Model',
-                                        component: () => (
-                                            <ModelTab model={model} />
-                                        ),
-                                    },
-                                    {
-                                        label: 'Evaluation',
-                                        component: () => (
-                                            <PredictionTab
-                                                testData={testData}
-                                                results={results}
-                                            />
-                                        ),
-                                    },
-                                ]}
-                            />
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        </Fragment>
+        <Page>
+            <Panel>
+                <TitleSection />
+                <PrimaryButton
+                    onClick={() => setRunEvaluation(true)}
+                    disabled={runEvaluation}
+                >
+                    {runEvaluation ? 'Training...' : 'Evaluate Model'}
+                </PrimaryButton>
+            </Panel>
+            <Panel>
+                <TabContainer tabs={tabs} />
+            </Panel>
+        </Page>
     )
 }

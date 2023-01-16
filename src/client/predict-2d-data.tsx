@@ -1,12 +1,12 @@
-import React from 'react'
-import { Container, Grid, Paper } from '@mui/material'
-import Toolbar from '@mui/material/Toolbar'
+import * as React from 'react'
 import { VisualizationSpec } from 'vega-embed'
 import { Title } from './components/Title'
 import { scatterPlot } from './components/charts/scatterplot'
 import { Chart } from './components/Chart'
 import { loadTrainedModel } from '../models/predict-2d-data'
 import { getData } from '../data/cars'
+import { Page } from './components/Page'
+import { Panel } from './components/Panel'
 
 function TitleSection() {
     return (
@@ -86,36 +86,14 @@ export const Predict2D = (props: { setTitle: (title: string) => void }) => {
     }, [])
 
     return (
-        <React.Fragment>
-            <Toolbar />
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            <TitleSection />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: 360,
-                            }}
-                        >
-                            <Title>MPG by Horsepower</Title>
-                            <Chart spec={spec} />
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        </React.Fragment>
+        <Page>
+            <Panel>
+                <TitleSection />
+            </Panel>
+            <Panel height={360}>
+                <Title>MPG by Horsepower</Title>
+                <Chart spec={spec} />
+            </Panel>
+        </Page>
     )
 }
