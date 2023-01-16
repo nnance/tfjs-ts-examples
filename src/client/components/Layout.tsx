@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { ThemeProvider } from '@emotion/react'
-import { createTheme, Box, CssBaseline } from '@mui/material'
+import { createTheme, Box, CssBaseline, ThemeProvider } from '@mui/material'
 import { Outlet } from 'react-router-dom'
 import { AppBar } from './AppBar'
 import { Drawer } from './Drawer'

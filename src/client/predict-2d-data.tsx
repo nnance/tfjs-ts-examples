@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { VisualizationSpec } from 'vega-embed'
 import { Title } from './components/Title'
-import { scatterPlot } from './components/charts/scatterplot'
-import { Chart } from './components/Chart'
 import { loadTrainedModel } from '../models/predict-2d-data'
 import { getData } from '../data/cars'
 import { Page } from './components/Page'
 import { Panel } from './components/Panel'
+import { ChartSpec } from './components/charts/types'
+import { ScatterPlot } from './components/charts/scatterplot'
 
 function TitleSection() {
     return (
@@ -58,21 +57,21 @@ async function getDataWithPredictions() {
     return { originalPoints, predictedPoints }
 }
 
-const carPerformanceSpec = (data: EnrichedPredictionResults) => {
+const carPerformanceSpec = (data: EnrichedPredictionResults): ChartSpec => {
     const { originalPoints, predictedPoints } = data
     const orig = originalPoints.map((p) => ({ x: p.horsepower, y: p.mpg }))
     const predicted = predictedPoints.map((p) => ({
         x: p.horsepower,
         y: p.mpg,
     }))
-    return scatterPlot(
-        { values: [orig, predicted], series: ['original', 'predicted'] },
-        { xLabel: 'Horsepower', yLabel: 'MPG' }
-    )
+    return {
+        data: { values: [orig, predicted], series: ['original', 'predicted'] },
+        options: { xLabel: 'Horsepower', yLabel: 'MPG' },
+    }
 }
 
 export const Predict2D = (props: { setTitle: (title: string) => void }) => {
-    const [spec, setSpec] = React.useState<VisualizationSpec>()
+    const [spec, setSpec] = React.useState<ChartSpec>()
 
     React.useEffect(() => {
         props.setTitle('Predict 2D Data')
@@ -92,7 +91,7 @@ export const Predict2D = (props: { setTitle: (title: string) => void }) => {
             </Panel>
             <Panel height={360}>
                 <Title>MPG by Horsepower</Title>
-                <Chart spec={spec} />
+                <ScatterPlot spec={spec} />
             </Panel>
         </Page>
     )

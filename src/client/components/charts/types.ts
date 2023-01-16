@@ -76,3 +76,8 @@ export interface XYPlotData {
      */
     series?: string[]
 }
+
+export interface ChartSpec {
+    data: XYPlotData
+    options: XYPlotOptions
+}

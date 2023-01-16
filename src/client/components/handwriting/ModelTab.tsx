@@ -1,12 +1,11 @@
 import React from 'react'
-import { VisualizationSpec } from 'vega-embed'
 import {
     classNames,
     loadTrainingResults,
     TrainedModel,
 } from '../../../models/recognize-handwriting'
-import { Chart } from '../Chart'
-import { lineChart } from '../charts/linechart'
+import { LineChart } from '../charts/linechart'
+import { ChartSpec } from '../charts/types'
 import { Panel } from '../Panel'
 import { SummaryTable } from '../SummaryTable'
 import { Title } from '../Title'
@@ -47,45 +46,49 @@ const getEpochAccResults = (results: TrainingResults) => [
 ]
 
 // transform batch results to line chart
-const batchLossChart = (values: ReturnType<typeof getBatchLossResults>) =>
-    lineChart(
-        { values, series: ['loss'] },
-        {
-            xLabel: 'Batch',
-            yLabel: 'Value',
-            height: 300,
-        }
-    )
+const batchLossChart = (
+    values: ReturnType<typeof getBatchLossResults>
+): ChartSpec => ({
+    data: { values, series: ['loss'] },
+    options: {
+        xLabel: 'Batch',
+        yLabel: 'Value',
+        height: 300,
+    },
+})
 
-const batchAccChart = (values: ReturnType<typeof getBatchAccResults>) =>
-    lineChart(
-        { values, series: ['acc'] },
-        {
-            xLabel: 'Batch',
-            yLabel: 'Value',
-            height: 300,
-        }
-    )
+const batchAccChart = (
+    values: ReturnType<typeof getBatchAccResults>
+): ChartSpec => ({
+    data: { values, series: ['acc'] },
+    options: {
+        xLabel: 'Batch',
+        yLabel: 'Value',
+        height: 300,
+    },
+})
 
-const epochLossChart = (values: ReturnType<typeof getEpochLossResults>) =>
-    lineChart(
-        { values, series: ['loss', 'val_loss'] },
-        {
-            xLabel: 'Epoch',
-            yLabel: 'Value',
-            height: 300,
-        }
-    )
+const epochLossChart = (
+    values: ReturnType<typeof getEpochLossResults>
+): ChartSpec => ({
+    data: { values, series: ['loss', 'val_loss'] },
+    options: {
+        xLabel: 'Epoch',
+        yLabel: 'Value',
+        height: 300,
+    },
+})
 
-const epochAccChart = (values: ReturnType<typeof getEpochAccResults>) =>
-    lineChart(
-        { values, series: ['acc', 'val_acc'] },
-        {
-            xLabel: 'Epoch',
-            yLabel: 'Value',
-            height: 300,
-        }
-    )
+const epochAccChart = (
+    values: ReturnType<typeof getEpochAccResults>
+): ChartSpec => ({
+    data: { values, series: ['acc', 'val_acc'] },
+    options: {
+        xLabel: 'Epoch',
+        yLabel: 'Value',
+        height: 300,
+    },
+})
 
 const modelSummaryCols = [
     'Layer Name',
@@ -115,11 +118,10 @@ export function ModelTab(props: ModelTabProps) {
     const { model } = props
 
     const [batchResults, setBatchResults] = React.useState<TrainingResults>()
-    const [lossSpec, setLossSpec] = React.useState<VisualizationSpec>()
-    const [accSpec, setAccSpec] = React.useState<VisualizationSpec>()
-    const [epochLossSpec, setEpochLossSpec] =
-        React.useState<VisualizationSpec>()
-    const [epochAccSpec, setEpochAccSpec] = React.useState<VisualizationSpec>()
+    const [lossSpec, setLossSpec] = React.useState<ChartSpec>()
+    const [accSpec, setAccSpec] = React.useState<ChartSpec>()
+    const [epochLossSpec, setEpochLossSpec] = React.useState<ChartSpec>()
+    const [epochAccSpec, setEpochAccSpec] = React.useState<ChartSpec>()
 
     React.useEffect(() => {
         loadTrainingResults().then(setBatchResults)
@@ -165,15 +167,15 @@ export function ModelTab(props: ModelTabProps) {
             {batchResults && (
                 <Panel>
                     <Title>onBatchEnd</Title>
-                    <Chart spec={lossSpec} />
-                    <Chart spec={accSpec} />
+                    <LineChart spec={lossSpec} />
+                    <LineChart spec={accSpec} />
                 </Panel>
             )}
             {batchResults && (
                 <Panel>
                     <Title>onEpochEnd</Title>
-                    <Chart spec={epochLossSpec} />
-                    <Chart spec={epochAccSpec} />
+                    <LineChart spec={epochLossSpec} />
+                    <LineChart spec={epochAccSpec} />
                 </Panel>
             )}
             {batchResults && (

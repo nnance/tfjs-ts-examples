@@ -1,8 +1,7 @@
 import React from 'react'
-import { Mode, VisualizationSpec } from 'vega-embed'
-import { useRef } from 'react'
-import { useEffect } from 'preact/compat'
+import { useRef, useEffect } from 'react'
 import vegaEmbed from 'vega-embed'
+import { Mode, VisualizationSpec } from 'vega-embed'
 
 type ChartProps = {
     spec?: VisualizationSpec
