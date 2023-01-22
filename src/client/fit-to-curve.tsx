@@ -4,7 +4,12 @@ import { Page } from './components/Page'
 import { TabContainer } from './components/TabContainer'
 import { generateData } from '../data/synthetic-curve'
 import { plotData, plotDataAndPredictions } from './components/charts/PlotData'
-import { predict, train } from '../models/fit-to-curve'
+import {
+    Coefficients,
+    createRandomCoefficients,
+    predict,
+    train,
+} from '../models/fit-to-curve'
 
 const numIterations = 75
 
@@ -36,12 +41,29 @@ function InputTab({ trainingData }: { trainingData?: TrainingData }) {
     return <div ref={chartRef}></div>
 }
 
-function ResultsTab({ trainingData }: { trainingData?: TrainingData }) {
+async function runTraining(trainingData: TrainingData) {
+    const coefficients = createRandomCoefficients()
+
+    console.time('running training...')
+    // Train the model!
+    await train(coefficients, trainingData.xs, trainingData.ys, numIterations)
+    console.timeEnd('running training...')
+
+    return coefficients
+}
+
+const ResultsTab = ({
+    trainingData,
+    coefficients,
+}: {
+    trainingData?: TrainingData
+    coefficients?: Coefficients
+}) => {
     const chartRef = React.useRef<HTMLDivElement>(null)
 
     React.useEffect(() => {
-        if (chartRef.current && trainingData) {
-            const predictions = predict(trainingData.xs)
+        if (chartRef.current && trainingData && coefficients) {
+            const predictions = predict(coefficients, trainingData.xs)
             plotDataAndPredictions(
                 chartRef.current,
                 trainingData.xs,
@@ -49,7 +71,7 @@ function ResultsTab({ trainingData }: { trainingData?: TrainingData }) {
                 predictions
             )
         }
-    })
+    }, [chartRef, trainingData, coefficients])
 
     return <div ref={chartRef}></div>
 }
@@ -60,29 +82,43 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
     }, [props])
 
     const [trainingData, setTrainingData] = React.useState<TrainingData>()
+    const [coefficients, setCoefficients] = React.useState<Coefficients>()
 
     React.useEffect(() => {
         async function runTraining() {
             const trueCoefficients = { a: -0.8, b: -0.2, c: 0.9, d: 0.5 }
             const trainingData = generateData(100, trueCoefficients)
             setTrainingData(trainingData)
-
-            // Train the model!
-            await train(trainingData.xs, trainingData.ys, numIterations)
         }
         runTraining()
     }, [])
 
-    const tabs = [
-        {
+    React.useEffect(() => {
+        if (trainingData) {
+            runTraining(trainingData).then(setCoefficients)
+        }
+    }, [trainingData])
+
+    const memoizedInputTab = React.useMemo(
+        () => ({
             label: 'Input',
             component: () => <InputTab trainingData={trainingData} />,
-        },
-        {
+        }),
+        [trainingData]
+    )
+
+    const memoizedResultsTab = React.useMemo(
+        () => ({
             label: 'Results',
-            component: () => <ResultsTab trainingData={trainingData} />,
-        },
-    ]
+            component: () => (
+                <ResultsTab
+                    trainingData={trainingData}
+                    coefficients={coefficients}
+                />
+            ),
+        }),
+        [trainingData, coefficients]
+    )
 
     return (
         <Page>
@@ -90,7 +126,7 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
                 <TitleSection />
             </Panel>
             <Panel>
-                <TabContainer tabs={tabs} />
+                <TabContainer tabs={[memoizedInputTab, memoizedResultsTab]} />
             </Panel>
         </Page>
     )

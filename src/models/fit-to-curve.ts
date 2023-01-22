@@ -18,10 +18,17 @@ import * as tf from '@tensorflow/tfjs'
 // Step 1. Set up variables, these are the things we want the model
 // to learn in order to do prediction accurately. We will initialize
 // them with random values.
-const a = tf.variable(tf.scalar(Math.random()))
-const b = tf.variable(tf.scalar(Math.random()))
-const c = tf.variable(tf.scalar(Math.random()))
-const d = tf.variable(tf.scalar(Math.random()))
+export type Coefficients = ReturnType<typeof createRandomCoefficients>
+export function createRandomCoefficients() {
+    return tf.tidy(() => {
+        return {
+            a: tf.variable(tf.scalar(Math.random())),
+            b: tf.variable(tf.scalar(Math.random())),
+            c: tf.variable(tf.scalar(Math.random())),
+            d: tf.variable(tf.scalar(Math.random())),
+        }
+    })
+}
 
 // Step 2. Create an optimizer, we will use this later. You can play
 // with some of these values to see how the model performs.
@@ -39,7 +46,8 @@ const optimizer = tf.train.sgd(learningRate)
  *
  * @return number predicted y value
  */
-export function predict(x: tf.Tensor) {
+export function predict(coefficients: Coefficients, x: tf.Tensor) {
+    const { a, b, c, d } = coefficients
     // y = a * x ^ 3 + b * x ^ 2 + c * x + d
     return tf.tidy(() => {
         return a
@@ -70,6 +78,7 @@ function loss(prediction: tf.Tensor, labels: tf.Tensor) {
  * ys — training data y values
  */
 export async function train(
+    coefficients: Coefficients,
     xs: tf.Tensor,
     ys: tf.Tensor,
     numIterations: number
@@ -86,7 +95,7 @@ export async function train(
         // loss.
         optimizer.minimize(() => {
             // Feed the examples into the model
-            const pred = predict(xs)
+            const pred = predict(coefficients, xs)
             return loss(pred, ys).asScalar()
         })
 
