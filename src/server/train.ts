@@ -137,3 +137,8 @@ export async function trainPrediction(
     console.log('Done Training')
     await saveModel(model, modelSavePath, fileName)
 }
+
+export async function trainAll() {
+    await trainPrediction()
+    await trainHandwriting()
+}

@@ -85,19 +85,11 @@ export const FitToCurve = (props: { setTitle: (title: string) => void }) => {
     const [coefficients, setCoefficients] = React.useState<Coefficients>()
 
     React.useEffect(() => {
-        async function runTraining() {
-            const trueCoefficients = { a: -0.8, b: -0.2, c: 0.9, d: 0.5 }
-            const trainingData = generateData(100, trueCoefficients)
-            setTrainingData(trainingData)
-        }
-        runTraining()
+        const trueCoefficients = { a: -0.8, b: -0.2, c: 0.9, d: 0.5 }
+        const trainingData = generateData(100, trueCoefficients)
+        setTrainingData(trainingData)
+        runTraining(trainingData).then(setCoefficients)
     }, [])
-
-    React.useEffect(() => {
-        if (trainingData) {
-            runTraining(trainingData).then(setCoefficients)
-        }
-    }, [trainingData])
 
     const memoizedInputTab = React.useMemo(
         () => ({
